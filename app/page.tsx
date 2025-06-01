@@ -1,103 +1,113 @@
-import Image from "next/image";
+"use client"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { CheckCircle, FileText, ArrowRight } from "lucide-react"
+import Image from "next/image"
+import Lnavbar from "@/components/Lnavbar"
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="bg-background text-foreground">
+      {/* Navbar */}
+      <Lnavbar />
+      
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      {/* Hero Section */}
+<section className="relative isolate overflow-hidden bg-gradient-to-br from-primary/5 via-background to-muted/40 py-24 sm:py-32">
+  {/* Optional Background SVG or Pattern */}
+  <div
+    className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent"
+    aria-hidden="true"
+  />
+
+  <div className="mx-auto max-w-4xl px-6 lg:px-8 text-center">
+    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground">
+      Create a Job-Winning Resume in Minutes
+    </h1>
+    <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
+      Our modern, ATS-friendly templates and intuitive editor help you stand out and get hired faster.
+    </p>
+    <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+      <Button size="lg" className="text-lg px-8">
+        Build My Resume
+        <ArrowRight className="ml-2 h-5 w-5" />
+      </Button>
+      <Button size="lg" variant="outline" className="text-lg px-8">
+        Browse Templates
+      </Button>
     </div>
-  );
+  </div>
+</section>
+
+
+      {/* Features Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            {
+              icon: <FileText className="w-8 h-8 text-primary" />,
+              title: "ATS Friendly",
+              desc: "Our templates are optimized to pass Applicant Tracking Systems.",
+            },
+            {
+              icon: <CheckCircle className="w-8 h-8 text-primary" />,
+              title: "Easy to Use",
+              desc: "A user-friendly editor to add content and customize templates.",
+            },
+            {
+              icon: <ArrowRight className="w-8 h-8 text-primary" />,
+              title: "Instant Download",
+              desc: "Export your resume as a PDF instantly with one click.",
+            },
+          ].map((feature, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="mb-4">{feature.icon}</div>
+                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                <p className="text-muted-foreground">{feature.desc}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* Templates Section */}
+      <section className="py-20 bg-background max-w-6xl mx-auto px-4 text-center">
+        <h2 className="text-3xl md:text-4xl font-bold mb-6">
+          Beautiful, Modern Templates
+        </h2>
+        <p className="text-muted-foreground mb-10">
+          Choose from a variety of professional designs tailored for every industry.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map((num) => (
+            <div key={num} className="overflow-hidden rounded-2xl shadow-lg bg-white dark:bg-zinc-900">
+              <Image
+                src={`/templates/template${num}.png`}
+                alt={`Template ${num}`}
+                width={400}
+                height={600}
+                className="w-full object-cover"
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-primary text-primary-foreground text-center px-4">
+        <h2 className="text-3xl md:text-4xl font-bold mb-4">Start Your Resume Now</h2>
+        <p className="mb-6 text-lg">Join thousands of job seekers getting hired faster.</p>
+        <Button size="lg" variant="secondary" className="text-lg px-8">
+          Build My Resume
+        </Button>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-10 text-center text-sm text-muted-foreground bg-muted/50">
+        <p>&copy; {new Date().getFullYear()} resume.io. All rights reserved.</p>
+      </footer>
+    </main>
+  )
 }
