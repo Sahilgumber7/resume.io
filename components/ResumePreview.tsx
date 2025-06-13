@@ -57,7 +57,7 @@ export default function ResumePreview({ resumeData }: { resumeData: ResumeData }
         }}
       >
         {/* Header */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-6"> 
           <h1 className="text-3xl font-bold" style={{ color: themeColor }}>
             {resumeData.name}
           </h1>
