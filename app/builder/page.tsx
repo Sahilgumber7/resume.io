@@ -32,12 +32,27 @@ export default function ResumeBuilderPage() {
   })
 
   return (
-    <div>
+    <div className="h-screen w-full overflow-hidden">
+      {/* Fixed Navbar */}
+      <div className="fixed top-0 left-0 right-0 z-50">
         <Navbar />
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
-      <ResumeForm resumeData={resumeData} setResumeData={setResumeData} />
-      <ResumePreview resumeData={resumeData} />
-    </div>
+      </div>
+
+      {/* Main Builder Area (below navbar) */}
+      <div className="pt-[64px] h-[calc(100vh)] flex">
+        {/* Form Side (scrollable) */}
+        <div className="w-full lg:w-1/2 h-full overflow-y-auto p-4 bg-white shadow-md rounded-none lg:rounded-l-lg">
+          <ResumeForm resumeData={resumeData} setResumeData={setResumeData} />
+        </div>
+
+        {/* Divider */}
+        <div className="hidden lg:block w-px bg-border" />
+
+        {/* Preview Side (fixed) */}
+        <div className="w-full lg:w-1/2 h-full p-4 bg-white shadow-md rounded-none lg:rounded-r-lg overflow-hidden">
+          <ResumePreview resumeData={resumeData} />
+        </div>
+      </div>
     </div>
   )
 }

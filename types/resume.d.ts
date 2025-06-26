@@ -7,28 +7,28 @@ export interface ResumeData {
 
   summary: string
 
-  experience: {
+  experience: Array<{
     company: string
     role: string
     startDate: string
     endDate: string
     description: string
-  }[]
+  }>
 
-  education: {
+  education: Array<{
     institution: string
     degree: string
     startDate: string
     endDate: string
     gpa: string
     description: string
-  }[]
+  }>
 
-  projects: {
+  projects: Array<{
     title: string
     description: string
     link: string
-  }[]
+  }>
 
   skills: string[]
   featuredSkills?: string[]
@@ -38,10 +38,10 @@ export interface ResumeData {
     content: string
   }
 
-  settings?: {
-    font?: string
-    fontSize?: "Compact" | "Standard" | "Large"
-    themeColor?: string
-    documentSize?: "A4" | "Letter"
+  settings: {
+    font: string
+    fontSize: "Compact" | "Standard" | "Large"
+    themeColor: string
+    documentSize: "A4" | "Letter"
   }
 }
