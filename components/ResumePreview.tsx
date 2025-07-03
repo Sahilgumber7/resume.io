@@ -23,14 +23,13 @@ export default function ResumePreview({ resumeData }: { resumeData: ResumeData }
   }
 
   return (
-    <div className="w-full h-full flex flex-col bg-white border shadow-md rounded-md overflow-hidden">
+    <div className="w-full h-full flex flex-col  overflow-hidden">
       
-      {/* Top Black Bar */}
-      <div className="bg-black h-2 w-full" />
+      
 
       {/* Resume Preview Area */}
-      <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-white">
-        <div className="bg-white">
+      <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-gray-300 dark:bg-background ">
+        <div className="bg-white shadow-xl">
           <ResumeIframeCSR
             documentSize={resumeData.settings.documentSize}
             scale={scale}
@@ -48,7 +47,7 @@ export default function ResumePreview({ resumeData }: { resumeData: ResumeData }
         <div className="flex items-center space-x-2">
           <span className="text-sm text-muted-foreground">Zoom</span>
           <Slider
-            defaultValue={[53]}
+            defaultValue={[50]}
             value={[scale * 100]}
             onValueChange={handleZoomChange}
             max={200}

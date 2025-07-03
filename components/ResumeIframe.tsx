@@ -23,10 +23,13 @@ const getIframeInitialContent = (isA4: boolean) => {
         margin: 0;
         padding: 0;
         width: ${width}pt;
-        overflow: hidden;
+        min-height: 100%;
         font-family: sans-serif;
         -webkit-text-size-adjust: none;
         background-color: white;
+      }
+      #root {
+        min-height: 100%;
       }
     </style>
   </head>
@@ -53,7 +56,7 @@ const ResumeIframe = ({
   const iframeInitialContent = useMemo(() => getIframeInitialContent(isA4), [isA4])
   const width = isA4 ? A4_WIDTH_PX : LETTER_WIDTH_PX
   const height = isA4 ? A4_HEIGHT_PX : LETTER_HEIGHT_PX
-  const appliedScale = autoScale ? 0.53 : scale
+  const appliedScale = autoScale ? 0.5 : scale
 
   if (enablePDFViewer) {
     return (
@@ -80,12 +83,17 @@ const ResumeIframe = ({
           height: `${height}px`,
           transform: `scale(${appliedScale})`,
           transformOrigin: "top left",
-          boxShadow: "0 0 10px rgba(0,0,0,0.1)",
           background: "#fff",
+          overflow: "visible",
         }}
       >
         <Frame
-          style={{ width: "100%", height: "100%", border: "none", backgroundColor: "gray" }}
+          style={{
+            width: "100%",
+            height: "100%",
+            border: "none",
+            backgroundColor: "transparent",
+          }}
           initialContent={iframeInitialContent}
           mountTarget="#root"
           key={isA4 ? "A4" : "LETTER"}
