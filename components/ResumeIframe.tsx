@@ -58,14 +58,6 @@ const ResumeIframe = ({
   const height = isA4 ? A4_HEIGHT_PX : LETTER_HEIGHT_PX
   const appliedScale = autoScale ? 0.5 : scale
 
-  if (enablePDFViewer) {
-    return (
-      <DynamicPDFViewer className="h-full w-full">
-        {children as any}
-      </DynamicPDFViewer>
-    )
-  }
-
   return (
     <div
       className="overflow-hidden"
@@ -109,7 +101,4 @@ export const ResumeIframeCSR = dynamic(() => Promise.resolve(ResumeIframe), {
   ssr: false,
 })
 
-const DynamicPDFViewer = dynamic(
-  () => import("@react-pdf/renderer").then((mod) => mod.PDFViewer),
-  { ssr: false }
-)
+
