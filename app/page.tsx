@@ -87,7 +87,7 @@ export default function Home() {
           {[1, 2, 3].map((num) => (
             <div key={num} className="overflow-hidden rounded-2xl shadow-lg bg-white dark:bg-zinc-900">
               <Image
-                src={`/templates/template${num}.png`}
+                src={`/template${num}.png`}
                 alt={`Template ${num}`}
                 width={400}
                 height={600}
