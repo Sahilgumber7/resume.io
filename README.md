@@ -34,3 +34,12 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+| Method | Endpoint           | Description              |
+| ------ | ------------------ | ------------------------ |
+| GET    | `/api/resumes`     | Get all resumes for user |
+| POST   | `/api/resumes`     | Create new resume        |
+| GET    | `/api/resumes/:id` | Get resume by ID         |
+| PUT    | `/api/resumes/:id` | Update resume by ID      |
+| DELETE | `/api/resumes/:id` | Delete resume by ID      |

@@ -1,13 +1,14 @@
 'use client';
 
-import html2pdf from 'html2pdf.js';
+import { useEffect, useState, useRef } from 'react';
 import { useUser } from '@clerk/nextjs';
-import { useState, useEffect, useRef } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { ResumeData } from '@/types/resume';
 import ResumeForm from '@/components/ResumeForm';
 import ResumePreview from '@/components/ResumePreview';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
+import html2pdf from 'html2pdf.js';
 
 const defaultData: ResumeData = {
   name: '',
@@ -35,14 +36,41 @@ const defaultData: ResumeData = {
 
 export default function ResumeBuilderPage() {
   const { user, isSignedIn } = useUser();
+  const { resumeId } = useParams();
+  const router = useRouter();
+
   const [resumeData, setResumeData] = useState<ResumeData>(defaultData);
-  const [resumeId, setResumeId] = useState<string | null>(null);
-  const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'saved'>('loading');
+
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // Auto-save
+  // ✅ Fetch resume if ID exists
   useEffect(() => {
-    if (!isSignedIn || !resumeData) return;
+    const fetchResume = async () => {
+      if (resumeId === 'new') {
+        setStatus('idle');
+        return;
+      }
+
+      setStatus('loading');
+      try {
+        const res = await fetch(`/api/resumes/${resumeId}`);
+        if (!res.ok) throw new Error('Failed to fetch resume');
+        const data = await res.json();
+        setResumeData(data.content); // Assuming your resume doc is { content: ResumeData }
+        setStatus('idle');
+      } catch (err) {
+        console.error('Error loading resume:', err);
+        router.push('/dashboard');
+      }
+    };
+
+    fetchResume();
+  }, [resumeId]);
+
+  // ✅ Auto-save changes
+  useEffect(() => {
+    if (!isSignedIn || resumeId === 'new') return;
     const timeout = setTimeout(() => {
       saveResume();
     }, 1500);
@@ -50,19 +78,14 @@ export default function ResumeBuilderPage() {
   }, [resumeData]);
 
   const saveResume = async () => {
-    if (!isSignedIn) return;
+    if (!isSignedIn || resumeId === 'new') return;
     setStatus('saving');
-
     try {
-      const res = await fetch(resumeId ? `/api/resumes/${resumeId}` : `/api/resumes`, {
-        method: resumeId ? 'PUT' : 'POST',
+      await fetch(`/api/resumes/${resumeId}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Untitled Resume', content: resumeData }),
+        body: JSON.stringify({ content: resumeData }),
       });
-
-      const data = await res.json();
-      if (!resumeId && data._id) setResumeId(data._id);
-      if (!resumeId && data.resume?._id) setResumeId(data.resume._id);
       setStatus('saved');
     } catch (err) {
       console.error('Save failed:', err);
@@ -84,22 +107,22 @@ export default function ResumeBuilderPage() {
 
   return (
     <div className="h-screen w-full overflow-hidden bg-background">
-      {/* Navbar */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <Navbar />
       </div>
 
-      {/* Layout */}
       <div className="pt-[64px] h-[calc(100vh)] flex">
-        {/* Editor */}
         <div className="w-full lg:w-1/2 h-full overflow-y-auto p-4 bg-background shadow-md">
           <ResumeForm resumeData={resumeData} setResumeData={setResumeData} />
+          {isSignedIn && resumeId !== 'new' && (
+            <div className="text-sm mt-2 text-muted-foreground">
+              {status === 'saving' ? 'Saving...' : status === 'saved' ? 'Saved' : ''}
+            </div>
+          )}
         </div>
 
-        {/* Divider */}
         <div className="hidden lg:block w-px bg-border" />
 
-        {/* Preview */}
         <div className="w-full lg:w-1/2 h-full bg-background shadow-md overflow-hidden">
           <div ref={previewRef} className="h-full overflow-auto">
             <ResumePreview resumeData={resumeData} />
@@ -107,13 +130,8 @@ export default function ResumeBuilderPage() {
         </div>
       </div>
 
-      {/* Save/Download Bar */}
+      {/* Save/Download bar */}
       <div className="fixed bottom-4 right-4 flex gap-2 z-50">
-        {isSignedIn && (
-          <Button onClick={saveResume} variant="default">
-            {status === 'saving' ? 'Saving...' : 'Save'}
-          </Button>
-        )}
         <Button onClick={handleDownload} variant="outline">
           Download PDF
         </Button>
