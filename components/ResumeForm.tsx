@@ -30,7 +30,6 @@ export default function ResumeForm({ resumeData, setResumeData }: Props) {
       <EducationSection resumeData={resumeData} setResumeData={setResumeData} handleChange={handleChange} />
       <ProjectsSection resumeData={resumeData} setResumeData={setResumeData} handleChange={handleChange} />
       <SkillsSection resumeData={resumeData} handleChange={handleChange} />
-      <FeaturedSkillsSection resumeData={resumeData} handleChange={handleChange} />
       <CustomSection resumeData={resumeData} handleChange={handleChange} />
       <SettingsSection resumeData={resumeData} handleChange={handleChange} />
     </div>

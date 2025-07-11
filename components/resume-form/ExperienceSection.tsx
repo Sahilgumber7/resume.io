@@ -25,7 +25,7 @@ export default function ExperienceSection({
       ...resumeData,
       experience: [
         ...resumeData.experience,
-        { company: "", role: "", startDate: "", endDate: "", description: "" },
+        { company: "", role: "", startDate: "", endDate: "", location: "", description: "" },
       ],
     })
   }
@@ -58,6 +58,11 @@ export default function ExperienceSection({
                   placeholder="Job Title"
                   value={exp.role}
                   onChange={(e) => updateField("role", e.target.value)}
+                />
+                <Input
+                  placeholder="Location"
+                  value={exp.location || ""}
+                  onChange={(e) => updateField("location", e.target.value)}
                 />
                 <div className="flex gap-2">
                   <Input

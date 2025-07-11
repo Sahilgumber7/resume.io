@@ -31,6 +31,7 @@ export default function EducationSection({
           gpa: "",
           startDate: "",
           endDate: "",
+          location: "",
           description: "",
         },
       ],
@@ -71,13 +72,16 @@ export default function EducationSection({
                   value={edu.gpa}
                   onChange={(e) => updateField("gpa", e.target.value)}
                 />
+                <Input
+                  placeholder="Location"
+                  value={edu.location || ""}
+                  onChange={(e) => updateField("location", e.target.value)}
+                />
                 <div className="flex gap-2">
                   <Input
                     placeholder="Start Date"
                     value={edu.startDate}
-                    onChange={(e) =>
-                      updateField("startDate", e.target.value)
-                    }
+                    onChange={(e) => updateField("startDate", e.target.value)}
                   />
                   <Input
                     placeholder="End Date"
@@ -88,9 +92,7 @@ export default function EducationSection({
                 <Textarea
                   placeholder="Description (Optional)"
                   value={edu.description}
-                  onChange={(e) =>
-                    updateField("description", e.target.value)
-                  }
+                  onChange={(e) => updateField("description", e.target.value)}
                 />
               </CardContent>
             </Card>

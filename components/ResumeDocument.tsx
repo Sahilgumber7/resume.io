@@ -27,12 +27,8 @@ export default function ResumeDocument({ resumeData }: { resumeData: ResumeData 
 
   return (
     <div
-      className={`w-full max-w-[750px] px-12 py-10 ${fontSizeClass} text-gray-900`}
-      style={{
-        fontFamily: settings.font,
-        boxSizing: "border-box",
-        backgroundColor: "white",
-      }}
+      className={`w-full max-w-[800px] mx-auto px-10 py-10 bg-white ${fontSizeClass} text-gray-900`}
+      style={{ fontFamily: settings.font }}
     >
       <Header
         name={name}
@@ -43,29 +39,29 @@ export default function ResumeDocument({ resumeData }: { resumeData: ResumeData 
         themeColor={themeColor}
       />
 
-      <Section title="Summary" themeColor={themeColor}>
-        {summary ? <p>{summary}</p> : <PlaceholderText />}
-      </Section>
+      {summary && (
+        <Section title="Professional Summary" themeColor={themeColor}>
+          <p className="text-justify leading-relaxed">{summary}</p>
+        </Section>
+      )}
 
-      <ExperienceSection experience={experience} />
-      <EducationSection education={education} />
-      <ProjectsSection projects={projects} />
+      <ExperienceSection experience={experience} themeColor={themeColor} />
+      <EducationSection education={education} themeColor={themeColor} />
+      <ProjectsSection projects={projects} themeColor={themeColor} />
 
-      <Section title="Skills" themeColor={themeColor}>
-        {skills.length > 0 ? (
-          <p className="text-sm">{skills.join(", ")}</p>
-        ) : (
-          <PlaceholderText />
-        )}
-      </Section>
+      {skills.length > 0 && (
+        <Section title="Skills" themeColor={themeColor}>
+          <ul className="list-disc list-inside columns-2 gap-x-8">
+            {skills.map((skill, i) => (
+              <li key={i}>{skill}</li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
       {customSection.title && (
         <Section title={customSection.title} themeColor={themeColor}>
-          {customSection.content ? (
-            <p className="text-sm">{customSection.content}</p>
-          ) : (
-            <PlaceholderText />
-          )}
+          <p>{customSection.content}</p>
         </Section>
       )}
     </div>
@@ -74,30 +70,15 @@ export default function ResumeDocument({ resumeData }: { resumeData: ResumeData 
 
 function Header({ name, email, phone, website, location, themeColor }: any) {
   return (
-    <header className="text-center mb-8">
+    <header className="text-center mb-10">
       <h1 className="text-3xl font-bold tracking-tight" style={{ color: themeColor }}>
         {name || "Your Name"}
       </h1>
-      <div className="mt-2 flex flex-wrap justify-center items-center gap-2 text-sm text-gray-700">
+      <div className="mt-2 flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-sm text-gray-700">
         {email && <ContactLink href={`mailto:${email}`} label={email} />}
-        {phone && (
-          <>
-            <Separator />
-            <ContactLink href={`tel:${phone}`} label={phone} />
-          </>
-        )}
-        {website && (
-          <>
-            <Separator />
-            <ContactLink href={website} label={website} external />
-          </>
-        )}
-        {location && (
-          <>
-            <Separator />
-            <span>{location}</span>
-          </>
-        )}
+        {phone && <ContactLink href={`tel:${phone}`} label={phone} />}
+        {website && <ContactLink href={website} label={website} external />}
+        {location && <span>{location}</span>}
       </div>
     </header>
   )
@@ -106,7 +87,10 @@ function Header({ name, email, phone, website, location, themeColor }: any) {
 function Section({ title, children, themeColor }: any) {
   return (
     <section className="mb-8">
-      <h2 className="text-lg font-semibold border-b border-gray-300 pb-1 mb-3" style={{ color: themeColor }}>
+      <h2
+        className="text-xl font-semibold uppercase tracking-wide mb-2 border-b pb-1"
+        style={{ color: themeColor }}
+      >
         {title}
       </h2>
       {children}
@@ -120,16 +104,16 @@ function ContactLink({ href, label, external = false }: any) {
       href={href}
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}
-      className="text-blue-600 underline hover:text-blue-800 transition"
+      className="text-blue-600 hover:underline"
     >
       {label}
     </a>
   )
 }
 
-function ExperienceSection({ experience }: any) {
+function ExperienceSection({ experience, themeColor }: any) {
   return (
-    <Section title="Experience" themeColor="#000">
+    <Section title="Experience" themeColor={themeColor}>
       {experience.length > 0 ? (
         experience.map((exp: any, i: number) => (
           <div key={i} className="mb-4">
@@ -139,7 +123,11 @@ function ExperienceSection({ experience }: any) {
             <p className="text-xs italic text-gray-500">
               {exp.startDate} – {exp.endDate}
             </p>
-            <p className="text-sm mt-1">{exp.description}</p>
+            <ul className="list-disc list-inside mt-1 text-sm leading-relaxed">
+              {exp.description.split("\n").map((line: string, idx: number) => (
+                <li key={idx}>{line}</li>
+              ))}
+            </ul>
           </div>
         ))
       ) : (
@@ -149,9 +137,9 @@ function ExperienceSection({ experience }: any) {
   )
 }
 
-function EducationSection({ education }: any) {
+function EducationSection({ education, themeColor }: any) {
   return (
-    <Section title="Education" themeColor="#000">
+    <Section title="Education" themeColor={themeColor}>
       {education.length > 0 ? (
         education.map((edu: any, i: number) => (
           <div key={i} className="mb-4">
@@ -171,9 +159,9 @@ function EducationSection({ education }: any) {
   )
 }
 
-function ProjectsSection({ projects }: any) {
+function ProjectsSection({ projects, themeColor }: any) {
   return (
-    <Section title="Projects" themeColor="#000">
+    <Section title="Projects" themeColor={themeColor}>
       {projects.length > 0 ? (
         projects.map((proj: any, i: number) => (
           <div key={i} className="mb-4">
@@ -199,9 +187,5 @@ function ProjectsSection({ projects }: any) {
 }
 
 function PlaceholderText() {
-  return <p className="text-sm text-muted-foreground italic">No content yet.</p>
-}
-
-function Separator() {
-  return <span className="text-gray-400 px-1">|</span>
+  return <p className="text-sm text-gray-400 italic">No content yet.</p>
 }

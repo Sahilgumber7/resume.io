@@ -1,8 +1,7 @@
 'use client';
 
-import html2pdf from 'html2pdf.js';
 import { useUser } from '@clerk/nextjs';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { ResumeData } from '@/types/resume';
 import ResumeForm from '@/components/ResumeForm';
 import ResumePreview from '@/components/ResumePreview';
@@ -38,7 +37,6 @@ export default function ResumeBuilderPage() {
   const [resumeData, setResumeData] = useState<ResumeData>(defaultData);
   const [resumeId, setResumeId] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
-  const previewRef = useRef<HTMLDivElement>(null);
 
   // Auto-save
   useEffect(() => {
@@ -69,19 +67,6 @@ export default function ResumeBuilderPage() {
     }
   };
 
-  const handleDownload = () => {
-    if (!previewRef.current) return;
-    html2pdf()
-      .set({
-        margin: 0,
-        filename: `${resumeData.name || 'resume'}.pdf`,
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-      })
-      .from(previewRef.current)
-      .save();
-  };
-
   return (
     <div className="h-screen w-full overflow-hidden bg-background">
       {/* Navbar */}
@@ -101,22 +86,8 @@ export default function ResumeBuilderPage() {
 
         {/* Preview */}
         <div className="w-full lg:w-1/2 h-full bg-background shadow-md overflow-hidden">
-          <div ref={previewRef} className="h-full overflow-auto">
-            <ResumePreview resumeData={resumeData} />
-          </div>
+          <ResumePreview resumeData={resumeData} />
         </div>
-      </div>
-
-      {/* Save/Download Bar */}
-      <div className="fixed bottom-4 right-4 flex gap-2 z-50">
-        {isSignedIn && (
-          <Button onClick={saveResume} variant="default">
-            {status === 'saving' ? 'Saving...' : 'Save'}
-          </Button>
-        )}
-        <Button onClick={handleDownload} variant="outline">
-          Download PDF
-        </Button>
       </div>
     </div>
   );

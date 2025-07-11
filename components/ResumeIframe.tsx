@@ -12,9 +12,8 @@ import {
   LETTER_WIDTH_PT,
 } from "@/lib/constants"
 
-const getIframeInitialContent = (isA4: boolean) => {
+const getIframeInitialContent = (isA4: boolean, iframeId?: string) => {
   const width = isA4 ? A4_WIDTH_PT : LETTER_WIDTH_PT
-
   return `<!DOCTYPE html>
 <html>
   <head>
@@ -45,18 +44,28 @@ const ResumeIframe = ({
   children,
   enablePDFViewer = false,
   autoScale = false,
+  iframeId = "resume-iframe",
 }: {
-  documentSize: string
+  documentSize: "A4" | "Letter"
   scale: number
   children: React.ReactNode
   enablePDFViewer?: boolean
   autoScale?: boolean
+  iframeId?: string
 }) => {
   const isA4 = documentSize === "A4"
-  const iframeInitialContent = useMemo(() => getIframeInitialContent(isA4), [isA4])
+  const iframeInitialContent = useMemo(() => getIframeInitialContent(isA4, iframeId), [isA4, iframeId])
   const width = isA4 ? A4_WIDTH_PX : LETTER_WIDTH_PX
   const height = isA4 ? A4_HEIGHT_PX : LETTER_HEIGHT_PX
   const appliedScale = autoScale ? 0.5 : scale
+
+  if (enablePDFViewer) {
+    return (
+      <DynamicPDFViewer className="h-full w-full">
+        {children as any}
+      </DynamicPDFViewer>
+    )
+  }
 
   return (
     <div
@@ -69,6 +78,7 @@ const ResumeIframe = ({
       }}
     >
       <div
+        id={iframeId}
         className="origin-top-left"
         style={{
           width: `${width}px`,
@@ -88,9 +98,19 @@ const ResumeIframe = ({
           }}
           initialContent={iframeInitialContent}
           mountTarget="#root"
-          key={isA4 ? "A4" : "LETTER"}
+          key={documentSize}
         >
-          {children}
+          <div
+            style={{
+              padding: "48px",
+              boxSizing: "border-box",
+              width: "100%",
+              height: "100%",
+              backgroundColor: "#fff",
+            }}
+          >
+            {children}
+          </div>
         </Frame>
       </div>
     </div>
@@ -101,4 +121,7 @@ export const ResumeIframeCSR = dynamic(() => Promise.resolve(ResumeIframe), {
   ssr: false,
 })
 
-
+const DynamicPDFViewer = dynamic(
+  () => import("@react-pdf/renderer").then((mod) => mod.PDFViewer),
+  { ssr: false }
+)
