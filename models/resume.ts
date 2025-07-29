@@ -1,20 +1,52 @@
-import mongoose, { Schema, model, models, Document } from 'mongoose';
+import mongoose from "mongoose";
 
-interface IResume extends Document {
-  userClerkId: string;
-  title: string;
-  content: any; // stores ResumeData
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const ResumeSchema = new Schema<IResume>(
+const ResumeSchema = new mongoose.Schema(
   {
-    userClerkId: { type: String, required: true },
-    title: { type: String, default: 'Untitled Resume' },
-    content: { type: Schema.Types.Mixed, required: true, default: {} },
+    userClerkId: {
+      type: String,
+      required: true,
+    },
+    userEmail: {
+      type: String,
+      required: true,
+    },
+    title: {
+      type: String,
+      default: 'Untitled Resume',
+    },
+    basicInfo: {
+      fullName: String,
+      email: String,
+      phone: String,
+      address: String,
+    },
+    education: [
+      {
+        degree: String,
+        institution: String,
+        year: String,
+      },
+    ],
+    experience: [
+      {
+        jobTitle: String,
+        company: String,
+        duration: String,
+        description: String,
+      },
+    ],
+    skills: [String],
+    summary: String,
+    projects: [
+      {
+        title: String,
+        description: String,
+      },
+    ],
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-export default models.Resume || model<IResume>('Resume', ResumeSchema);
+export default mongoose.models.Resume || mongoose.model('Resume', ResumeSchema);
