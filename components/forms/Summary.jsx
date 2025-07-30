@@ -1,98 +1,122 @@
+'use client'
+
+import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { ResumeInfoContext } from '@/context/ResumeInfoContext'
+import { LoaderCircle } from 'lucide-react'
+import { Rating } from '@smastrom/react-rating'
+import '@smastrom/react-rating/style.css'
+
 import React, { useContext, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom';
-import GlobalApi from '../../../../../AI-Resume-Builder/service/GlobalApi';
-import { Brain, LoaderCircle } from 'lucide-react';
-import { toast } from 'sonner';
-import { AIChatSession } from '../../../../../AI-Resume-Builder/service/AIModal';
+import { ResumeInfoContext } from '@/context/ResumeInfoContext'
+import { toast } from 'sonner'
+import { useParams } from 'next/navigation'
 
-const prompt="Job Title: {jobTitle} , Depends on job title give me list of  summery for 3 experience level, Mid Level and Freasher level in 3 -4 lines in array format, With summery and experience_level Field in JSON Format"
-function Summery({enabledNext}) {
-    const {resumeInfo,setResumeInfo}=useContext(ResumeInfoContext);
-    const [summery,setSummery]=useState();
-    const [loading,setLoading]=useState(false);
-    const params=useParams();
-    const [aiGeneratedSummeryList,setAiGenerateSummeryList]=useState();
-    useEffect(()=>{
-        summery&&setResumeInfo({
-            ...resumeInfo,
-            summery:summery
-        })
-    },[summery])
+export default function Skills() {
+  const [skillsList, setSkillsList] = useState([{ name: '', rating: 0 }])
+  const [loading, setLoading] = useState(false)
 
-    const GenerateSummeryFromAI=async()=>{
-        setLoading(true)
-        const PROMPT=prompt.replace('{jobTitle}',resumeInfo?.jobTitle);
-        console.log(PROMPT);
-        const result=await AIChatSession.sendMessage(PROMPT);
-        console.log(JSON.parse(result.response.text()))
-       
-        setAiGenerateSummeryList(JSON.parse(result.response.text()))
-        setLoading(false);
+  const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
+  const params = useParams()
+  const resumeId = params?.resumeId
+
+  useEffect(() => {
+    if (resumeInfo?.skills) {
+      setSkillsList(resumeInfo.skills)
     }
+  }, [resumeInfo])
 
-    const onSave=(e)=>{
-        e.preventDefault();
-       
-        setLoading(true)
-        const data={
-            data:{
-                summery:summery
-            }
-        }
-        GlobalApi.UpdateResumeDetail(params?.resumeId,data).then(resp=>{
-            console.log(resp);
-            enabledNext(true);
-            setLoading(false);
-            toast("Details updated")
-        },(error)=>{
-            setLoading(false);
-        })
+  useEffect(() => {
+    setResumeInfo((prev) => ({
+      ...prev,
+      skills: skillsList,
+    }))
+  }, [skillsList])
+
+  const handleChange = (index, name, value) => {
+    const updated = [...skillsList]
+    updated[index][name] = value
+    setSkillsList(updated)
+  }
+
+  const addNewSkill = () => {
+    setSkillsList([...skillsList, { name: '', rating: 0 }])
+  }
+
+  const removeSkill = () => {
+    if (skillsList.length > 1) {
+      setSkillsList((prev) => prev.slice(0, -1))
     }
-    return (
-    <div>
-         <div className='p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10'>
-        <h2 className='font-bold text-lg'>Summery</h2>
-        <p>Add Summery for your job title</p>
+  }
 
-        <form className='mt-7' onSubmit={onSave}>
-            <div className='flex justify-between items-end'>
-                <label>Add Summery</label>
-                <Button variant="outline" onClick={()=>GenerateSummeryFromAI()} 
-                type="button" size="sm" className="border-primary text-primary flex gap-2"> 
-                <Brain className='h-4 w-4' />  Generate from AI</Button>
+  const handleSave = async () => {
+    setLoading(true)
+
+    try {
+      const res = await fetch(`/api/resume/${resumeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          skills: skillsList.map(({ id, ...rest }) => rest),
+        }),
+      })
+
+      if (!res.ok) throw new Error('Failed to update')
+
+      toast('Skills updated successfully!')
+    } catch (error) {
+      console.error(error)
+      toast('Failed to update skills. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className='p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10'>
+      <h2 className='font-bold text-lg'>Skills</h2>
+      <p className='text-sm text-muted-foreground mb-4'>
+        Add your top professional key skills
+      </p>
+
+      <div className='space-y-3'>
+        {skillsList.map((item, index) => (
+          <div
+            key={index}
+            className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 border rounded-lg p-3'
+          >
+            <div className='flex-1'>
+              <label className='text-xs'>Skill Name</label>
+              <Input
+                value={item.name}
+                onChange={(e) => handleChange(index, 'name', e.target.value)}
+              />
             </div>
-            <Textarea className="mt-5" required
-            value={summery}
-                defaultValue={summery?summery:resumeInfo?.summery}
-            onChange={(e)=>setSummery(e.target.value)}
-            />
-            <div className='mt-2 flex justify-end'>
-            <Button type="submit"
-                disabled={loading}>
-                    {loading?<LoaderCircle className='animate-spin' />:'Save'}
-                    </Button>
+
+            <div className='flex items-center gap-2'>
+              <label className='text-xs hidden sm:block'>Rating</label>
+              <Rating
+                style={{ maxWidth: 120 }}
+                value={item.rating}
+                onChange={(v) => handleChange(index, 'rating', v)}
+              />
             </div>
-        </form>
+          </div>
+        ))}
+      </div>
+
+      <div className='flex justify-between items-center mt-4'>
+        <div className='flex gap-2'>
+          <Button variant='outline' onClick={addNewSkill}>
+            + Add Skill
+          </Button>
+          <Button variant='outline' onClick={removeSkill}>
+            - Remove
+          </Button>
         </div>
-
-        
-       {aiGeneratedSummeryList&& <div className='my-5'>
-            <h2 className='font-bold text-lg'>Suggestions</h2>
-            {aiGeneratedSummeryList?.map((item,index)=>(
-                <div key={index} 
-                onClick={()=>setSummery(item?.summary)}
-                className='p-5 shadow-lg my-4 rounded-lg cursor-pointer'>
-                    <h2 className='font-bold my-1 text-primary'>Level: {item?.experience_level}</h2>
-                    <p>{item?.summary}</p>
-                </div>
-            ))}
-        </div>}
-
+        <Button onClick={handleSave} disabled={loading}>
+          {loading ? <LoaderCircle className='animate-spin w-4 h-4' /> : 'Save'}
+        </Button>
+      </div>
     </div>
   )
 }
-
-export default Summery

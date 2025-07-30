@@ -5,50 +5,69 @@ import { connectDB } from '@/lib/db';
 import Resume from '@/models/resume';
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  await connectDB();
-  const resume = await Resume.findById(params.id);
+    await connectDB();
 
-  if (!resume || resume.userClerkId !== userId) {
-    return NextResponse.json({ error: 'Not found or unauthorized' }, { status: 404 });
+    const resume = await Resume.findById(params.id);
+    if (!resume || resume.userClerkId !== userId) {
+      return NextResponse.json({ error: 'Not found or unauthorized' }, { status: 404 });
+    }
+
+    return NextResponse.json(resume);
+  } catch (error) {
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
-
-  return NextResponse.json(resume);
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const body = await req.json();
-  await connectDB();
+    const data = await req.json();
+    await connectDB();
 
-  const resume = await Resume.findById(params.id);
-  if (!resume || resume.userClerkId !== userId) {
-    return NextResponse.json({ error: 'Not found or unauthorized' }, { status: 404 });
+    const resume = await Resume.findById(params.id);
+    if (!resume || resume.userClerkId !== userId) {
+      return NextResponse.json({ error: 'Not found or unauthorized' }, { status: 404 });
+    }
+
+    // Update only basic fields like title, content, education, experience, etc.
+    resume.title = data.title || resume.title;
+    resume.content = data.content || resume.content;
+    resume.education = data.education || resume.education;
+    resume.experience = data.experience || resume.experience;
+    resume.skills = data.skills || resume.skills;
+    resume.projects = data.projects || resume.projects;
+    resume.certifications = data.certifications || resume.certifications;
+    resume.updatedAt = new Date();
+
+    await resume.save();
+
+    return NextResponse.json({ message: 'Updated', resume });
+  } catch (error) {
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
-
-  resume.title = body.title || resume.title;
-  resume.content = body.content || resume.content;
-  resume.updatedAt = new Date();
-  await resume.save();
-
-  return NextResponse.json({ message: 'Updated', resume });
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  await connectDB();
-  const resume = await Resume.findById(params.id);
+    await connectDB();
+    const resume = await Resume.findById(params.id);
 
-  if (!resume || resume.userClerkId !== userId) {
-    return NextResponse.json({ error: 'Not found or unauthorized' }, { status: 404 });
+    if (!resume || resume.userClerkId !== userId) {
+      return NextResponse.json({ error: 'Not found or unauthorized' }, { status: 404 });
+    }
+
+    await resume.deleteOne();
+    return NextResponse.json({ message: 'Deleted successfully' });
+  } catch (error) {
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
-
-  await resume.deleteOne();
-  return NextResponse.json({ message: 'Deleted successfully' });
 }

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import PersonalDetail from './forms/PersonalDetail'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, ArrowRight, Home, LayoutGrid } from 'lucide-react'
-import Summery from './forms/Summary';
+import Summary from './forms/Summary';
 import Experience from './forms/Experience';
 import Education from './forms/Education';
 import Skills from './forms/Skills';
