@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useContext, useState } from 'react'
+import React, { useState } from 'react'
 import {
   Popover,
   PopoverContent,
@@ -8,11 +8,10 @@ import {
 } from "@/components/ui/popover"
 import { Button } from '@/components/ui/button'
 import { LayoutGrid } from 'lucide-react'
-import ResumeInfoContext from '@/context/ResumeInfoContext'
 import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
 
-function ThemeColor() {
+function ThemeColor({ resumeInfo, setResumeInfo }) {
   const colors = [
     "#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#A133FF",
     "#33FFA1", "#FF7133", "#71FF33", "#7133FF", "#FF3371",
@@ -20,7 +19,6 @@ function ThemeColor() {
     "#5733FF", "#33FF5A", "#5A33FF", "#FF335A", "#335AFF"
   ]
 
-  const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
   const [selectedColor, setSelectedColor] = useState(resumeInfo?.themeColor)
   const params = useParams()
   const resumeId = params?.resumeId

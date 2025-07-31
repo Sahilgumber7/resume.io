@@ -1,17 +1,15 @@
 'use client'
 
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { LoaderCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import RichTextEditor from '../RichTextEditor'
-import { ResumeInfoContext } from '@/context/ResumeInfoContext'
 
-function Experience() {
+export default function Experience({ resumeInfo, setResumeInfo }) {
   const [experienceList, setExperienceList] = useState([])
-  const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
   const searchParams = useSearchParams()
   const resumeId = searchParams.get('resumeId')
   const [loading, setLoading] = useState(false)
@@ -176,5 +174,3 @@ function Experience() {
     </div>
   )
 }
-
-export default Experience

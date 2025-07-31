@@ -1,17 +1,15 @@
 'use client'
 
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { LoaderCircle } from 'lucide-react'
-import { ResumeInfoContext } from '@/context/ResumeInfoContext'
 import { toast } from 'sonner'
 
-function Education() {
+export default function Education({ resumeInfo, setResumeInfo }) {
   const [loading, setLoading] = useState(false)
-  const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
   const searchParams = useSearchParams()
   const resumeId = searchParams.get('resumeId')
 
@@ -173,5 +171,3 @@ function Education() {
     </div>
   )
 }
-
-export default Education

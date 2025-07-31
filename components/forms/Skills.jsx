@@ -1,24 +1,19 @@
 'use client'
 
 import { Input } from '@/components/ui/input'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Rating } from '@smastrom/react-rating'
 import '@smastrom/react-rating/style.css'
 import { Button } from '@/components/ui/button'
 import { LoaderCircle } from 'lucide-react'
-import { ResumeInfoContext } from '@/context/ResumeInfoContext'
 import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
 
-function Skills() {
-  const [skillsList, setSkillsList] = useState([
-    { name: '', rating: 0 },
-  ])
+function Skills({ resumeInfo, setResumeInfo, enabledNext }) {
+  const [skillsList, setSkillsList] = useState([{ name: '', rating: 0 }])
   const params = useParams()
   const resumeId = params?.resumeId
   const [loading, setLoading] = useState(false)
-
-  const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
 
   useEffect(() => {
     if (resumeInfo?.skills?.length > 0) {
@@ -30,6 +25,7 @@ function Skills() {
     const updated = [...skillsList]
     updated[index][name] = value
     setSkillsList(updated)
+    enabledNext(false)
   }
 
   const AddNewSkills = () => {
@@ -60,6 +56,7 @@ function Skills() {
       if (!res.ok) throw new Error()
 
       toast('Skills updated successfully!')
+      enabledNext(true)
     } catch (err) {
       toast('Error updating skills. Try again!')
     } finally {
@@ -85,7 +82,7 @@ function Skills() {
             <div className='w-full'>
               <label className='text-xs'>Skill Name</label>
               <Input
-                defaultValue={item.name}
+                value={item.name}
                 onChange={(e) => handleChange(index, 'name', e.target.value)}
               />
             </div>

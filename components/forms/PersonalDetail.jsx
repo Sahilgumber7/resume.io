@@ -2,14 +2,12 @@
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ResumeInfoContext } from '@/context/ResumeInfoContext'
 import { LoaderCircle } from 'lucide-react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import React, { useContext, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
-function PersonalDetail({ enabledNext }) {
-  const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
+export default function PersonalDetail({ resumeInfo, setResumeInfo, enabledNext }) {
   const [formData, setFormData] = useState(resumeInfo || {})
   const [loading, setLoading] = useState(false)
 
@@ -40,7 +38,6 @@ function PersonalDetail({ enabledNext }) {
     setLoading(true)
 
     try {
-      // Replace with your actual API call (Supabase, fetch, etc.)
       await fetch(`/api/resumes/${resumeId}`, {
         method: 'PUT',
         headers: {
@@ -130,5 +127,3 @@ function PersonalDetail({ enabledNext }) {
     </div>
   )
 }
-
-export default PersonalDetail

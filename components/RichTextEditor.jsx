@@ -7,7 +7,6 @@ import {
   BtnUnderline, Editor, EditorProvider, HtmlButton, Separator, Toolbar
 } from 'react-simple-wysiwyg'
 
-import { ResumeInfoContext } from '@/context/ResumeInfoContext'
 import { Button } from '@/components/ui/button'
 import { Brain, LoaderCircle } from 'lucide-react'
 import { toast } from 'sonner'

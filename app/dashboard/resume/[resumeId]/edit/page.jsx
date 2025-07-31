@@ -4,11 +4,13 @@ import React, { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import FormSection from '@/components/FormSection'
 import ResumePreview from '@/components/ResumePreview'
-import { ResumeInfoContext } from '@/context/ResumeInfoContext'
+import { Loader2 } from 'lucide-react'
 
 export default function EditResumePage() {
-  const { resumeId } = useParams()
+  const params = useParams()
+  const resumeId = params?.resumeId
   const [resumeInfo, setResumeInfo] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (resumeId) {
@@ -16,22 +18,30 @@ export default function EditResumePage() {
         .then(res => res.json())
         .then(data => {
           setResumeInfo(data)
+          setLoading(false)
         })
         .catch(err => {
           console.error('Failed to fetch resume info:', err)
+          setLoading(false)
         })
     }
   }, [resumeId])
 
-  return (
-    <ResumeInfoContext.Provider value={{ resumeInfo, setResumeInfo }}>
-      <div className="grid grid-cols-1 md:grid-cols-2 p-10 gap-10">
-        {/* Form Section */}
-        <FormSection />
-
-        {/* Resume Preview */}
-        <ResumePreview />
+  if (loading || !resumeInfo) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
-    </ResumeInfoContext.Provider>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 p-6 md:p-10 gap-6 md:gap-10">
+      {/* Form Section */}
+      <FormSection resumeInfo={resumeInfo} setResumeInfo={setResumeInfo} />
+
+      {/* Resume Preview */}
+      <ResumePreview resumeInfo={resumeInfo} />
+    </div>
   )
 }
