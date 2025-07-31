@@ -23,7 +23,12 @@ export async function POST(req: NextRequest) {
   const newResume = await Resume.create({
     userClerkId: userId,
     title: body.title || 'Untitled Resume',
-    content: body.content || {},
+    basicInfo: body.basicInfo || {},
+    summary: body.summary || '',
+    education: body.education || [],
+    experience: body.experience || [],
+    skills: body.skills || [],
+    projects: body.projects || [],
   });
 
   return NextResponse.json(newResume);
