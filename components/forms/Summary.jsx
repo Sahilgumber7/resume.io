@@ -26,35 +26,35 @@ function Summary({ resumeInfo, setResumeInfo, enabledNext }) {
     })
   }, [summary])
 
-  const handleSave = async () => {
-    setLoading(true)
+const handleSave = async () => {
+  setLoading(true);
 
-    const payload = {
-      data: {
-        summary: summary,
+  const payload = {
+    summary: summary,
+  };
+
+  try {
+    const res = await fetch(`/api/resumes/${resumeId}`, { // Corrected URL
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to update summary. Status: ${res.status}`);
     }
 
-    try {
-      const res = await fetch(`/api/resume/${resumeId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      })
-
-      if (!res.ok) throw new Error()
-
-      toast('Summary updated successfully!')
-      enabledNext(true)
-    } catch (error) {
-      toast('Failed to update summary.')
-    } finally {
-      setLoading(false)
-    }
+    toast('Summary updated successfully!');
+    enabledNext(true);
+  } catch (error) {
+    console.error('Save error:', error);
+    toast('Failed to update summary.');
+  } finally {
+    setLoading(false);
   }
-
+};
   return (
     <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
       <h2 className="font-bold text-lg">Professional Summary</h2>

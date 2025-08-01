@@ -31,10 +31,20 @@ export default function AddResume() {
     const uuid = uuidv4()
     const data = {
       title: resumeTitle,
+      basicInfo: {
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      email: user.primaryEmailAddress?.emailAddress || '',
+      phone: '',     
+      address: '',
+      },
+      summary: '',
+      education: [],
+      experience: [],
+      skills: [],
+      projects: [],
       resumeId: uuid,
-      userEmail: user.primaryEmailAddress?.emailAddress,
-      userName: user.fullName,
-      themeColor: '#6366f1', // optional default color
+      themeColor: '#6366f1', 
     }
 
     try {

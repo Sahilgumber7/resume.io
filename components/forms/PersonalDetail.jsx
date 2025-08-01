@@ -8,14 +8,28 @@ import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 export default function PersonalDetail({ resumeInfo, setResumeInfo, enabledNext }) {
-  const [formData, setFormData] = useState(resumeInfo || {})
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: ''
+  })
   const [loading, setLoading] = useState(false)
 
   const searchParams = useSearchParams()
-  const resumeId = searchParams.get('resumeId')
+  const resumeId = searchParams.get('resumeId') || resumeInfo?._id
 
   useEffect(() => {
-    setFormData(resumeInfo || {})
+    if (resumeInfo?.basicInfo) {
+      setFormData({
+        firstName: resumeInfo.basicInfo.firstName || '',
+        lastName: resumeInfo.basicInfo.lastName || '',
+        email: resumeInfo.basicInfo.email || '',
+        phone: resumeInfo.basicInfo.phone || '',
+        address: resumeInfo.basicInfo.address || ''
+      })
+    }
   }, [resumeInfo])
 
   const handleInputChange = (e) => {
@@ -29,7 +43,10 @@ export default function PersonalDetail({ resumeInfo, setResumeInfo, enabledNext 
 
     setResumeInfo((prev) => ({
       ...prev,
-      [name]: value
+      basicInfo: {
+        ...prev.basicInfo,
+        [name]: value
+      }
     }))
   }
 
@@ -37,17 +54,24 @@ export default function PersonalDetail({ resumeInfo, setResumeInfo, enabledNext 
     e.preventDefault()
     setLoading(true)
 
+    if (!resumeId) {
+      toast.error('Missing resume ID')
+      return
+    }
+
     try {
-      await fetch(`/api/resumes/${resumeId}`, {
+      const res = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ data: formData })
+        body: JSON.stringify({ basicInfo: formData })
       })
 
+      if (!res.ok) throw new Error('Failed to update')
+
       enabledNext(true)
-      toast('Details updated successfully')
+      toast.success('Details updated successfully')
     } catch (error) {
       console.error('Failed to update resume:', error)
       toast.error('Failed to save changes')
@@ -68,7 +92,7 @@ export default function PersonalDetail({ resumeInfo, setResumeInfo, enabledNext 
             <Input
               name="firstName"
               required
-              defaultValue={formData?.firstName}
+              value={formData.firstName}
               onChange={handleInputChange}
             />
           </div>
@@ -77,16 +101,7 @@ export default function PersonalDetail({ resumeInfo, setResumeInfo, enabledNext 
             <Input
               name="lastName"
               required
-              defaultValue={formData?.lastName}
-              onChange={handleInputChange}
-            />
-          </div>
-          <div className="col-span-2">
-            <label className="text-sm">Job Title</label>
-            <Input
-              name="jobTitle"
-              required
-              defaultValue={formData?.jobTitle}
+              value={formData.lastName}
               onChange={handleInputChange}
             />
           </div>
@@ -95,7 +110,7 @@ export default function PersonalDetail({ resumeInfo, setResumeInfo, enabledNext 
             <Input
               name="address"
               required
-              defaultValue={formData?.address}
+              value={formData.address}
               onChange={handleInputChange}
             />
           </div>
@@ -104,7 +119,7 @@ export default function PersonalDetail({ resumeInfo, setResumeInfo, enabledNext 
             <Input
               name="phone"
               required
-              defaultValue={formData?.phone}
+              value={formData.phone}
               onChange={handleInputChange}
             />
           </div>
@@ -113,7 +128,7 @@ export default function PersonalDetail({ resumeInfo, setResumeInfo, enabledNext 
             <Input
               name="email"
               required
-              defaultValue={formData?.email}
+              value={formData.email}
               onChange={handleInputChange}
             />
           </div>

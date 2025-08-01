@@ -1,7 +1,46 @@
-// models/resume.ts
-import mongoose from "mongoose";
+import mongoose, { Schema, Document, models, model } from "mongoose";
 
-const ResumeSchema = new mongoose.Schema(
+export interface IEducation {
+  degree: string;
+  institution: string;
+  startYear?: string;
+  endYear?: string;
+}
+
+export interface IExperience {
+  jobTitle: string;
+  company: string;
+  duration?: string;
+  description?: string;
+}
+
+export interface IProject {
+  title: string;
+  description?: string;
+}
+
+export interface IBasicInfo {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+}
+
+export interface IResume extends Document {
+  userClerkId: string;
+  title: string;
+  basicInfo: IBasicInfo;
+  summary: string;
+  education: IEducation[];
+  experience: IExperience[];
+  skills: string[];
+  projects: IProject[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const ResumeSchema: Schema = new Schema<IResume>(
   {
     userClerkId: {
       type: String,
@@ -12,7 +51,8 @@ const ResumeSchema = new mongoose.Schema(
       default: "Untitled Resume",
     },
     basicInfo: {
-      fullName: String,
+      firstName: String,
+      lastName: String,
       email: String,
       phone: String,
       address: String,
@@ -23,28 +63,16 @@ const ResumeSchema = new mongoose.Schema(
     },
     education: [
       {
-        degree: {
-          type: String,
-          required: true,
-        },
-        institution: {
-          type: String,
-          required: true,
-        },
+        degree: { type: String, required: true },
+        institution: { type: String, required: true },
         startYear: String,
         endYear: String,
       },
     ],
     experience: [
       {
-        jobTitle: {
-          type: String,
-          required: true,
-        },
-        company: {
-          type: String,
-          required: true,
-        },
+        jobTitle: { type: String, required: true },
+        company: { type: String, required: true },
         duration: String,
         description: String,
       },
@@ -55,10 +83,7 @@ const ResumeSchema = new mongoose.Schema(
     },
     projects: [
       {
-        title: {
-          type: String,
-          required: true,
-        },
+        title: { type: String, required: true },
         description: String,
       },
     ],
@@ -68,4 +93,4 @@ const ResumeSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.models.Resume || mongoose.model("Resume", ResumeSchema);
+export default models.Resume || model<IResume>("Resume", ResumeSchema);
