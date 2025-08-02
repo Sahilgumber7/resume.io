@@ -11,48 +11,60 @@ const ResumeSchema = new mongoose.Schema(
       type: String,
       default: "Untitled Resume",
     },
-    basicInfo: {
-      fullName: String,
-      email: String,
-      phone: String,
-      address: String,
+
+    // Flattened basic info fields
+    fullName: {
+      type: String,
     },
+    email: {
+      type: String,
+    },
+    jobTitle : {
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
+    address: {
+      type: String,
+    },
+
     summary: {
       type: String,
       default: "",
     },
+
     education: [
       {
-        degree: {
-          type: String,
-          required: true,
-        },
-        institution: {
-          type: String,
-          required: true,
-        },
-        startYear: String,
-        endYear: String,
-      },
-    ],
-    experience: [
-      {
-        jobTitle: {
-          type: String,
-          required: true,
-        },
-        company: {
-          type: String,
-          required: true,
-        },
-        duration: String,
+        degree: String,
+        institution: String,
+        major: String,
+        startDate: String,
+        endDate: String,
         description: String,
       },
     ],
-    skills: {
-      type: [String],
-      default: [],
-    },
+
+    experience: [
+      {
+        title: String,
+        companyName: String,
+        city: String,
+        state: String,
+        startDate: String,
+        endDate: String,
+        currentlyWorking: Boolean,
+        worksummary: String,
+      },
+    ],
+
+    skills: [
+      {
+        name: String,
+        rating: Number,
+      },
+    ],
+
     projects: [
       {
         title: {

@@ -67,20 +67,11 @@ function PersonalDetail({ enabledNext }) {
       <form onSubmit={onSave}>
         <div className="grid grid-cols-2 mt-5 gap-3">
           <div>
-            <label className="text-sm">First Name</label>
+            <label className="text-sm">Full Name</label>
             <Input
-              name="firstName"
+              name="fullName"
               required
-              defaultValue={formData?.firstName}
-              onChange={handleInputChange}
-            />
-          </div>
-          <div>
-            <label className="text-sm">Last Name</label>
-            <Input
-              name="lastName"
-              required
-              defaultValue={formData?.lastName}
+              defaultValue={formData?.fullName}
               onChange={handleInputChange}
             />
           </div>
