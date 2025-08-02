@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, ArrowRight, Home } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
+import Projects from './forms/Project'
 
 function FormSection() {
   const [activeFormIndex, setActiveFormIndex] = useState(1)
@@ -65,6 +66,8 @@ function FormSection() {
         <Education />
       ) : activeFormIndex === 5 ? (
         <Skills />
+      ) : activeFormIndex === 6 ? (
+        <Projects />
       ) : null}
     </div>
   )
