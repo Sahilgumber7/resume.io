@@ -38,6 +38,7 @@ export default function AddResume() {
       email: user.primaryEmailAddress?.emailAddress || '',
       phone: '',
       address: '',
+      themeColor: '#000000',
       summary: '',
       education: [],
       experience: [],

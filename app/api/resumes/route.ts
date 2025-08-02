@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
     phone: body.phone || '',
     address: body.address || '',
     jobTitle: body.jobTitle || '',
+    themeColor: body.themeColor || '#000000',
 
     summary: body.summary || '',
     education: body.education || [],

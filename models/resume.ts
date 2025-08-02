@@ -28,6 +28,9 @@ const ResumeSchema = new mongoose.Schema(
     address: {
       type: String,
     },
+    themeColor: {
+      type: String,
+    },
 
     summary: {
       type: String,
