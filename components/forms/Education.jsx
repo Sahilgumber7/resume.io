@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { LoaderCircle } from 'lucide-react'
-import { ResumeInfoContext } from '@/context/ResumeInfoContext'
+import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 import { toast } from 'sonner'
 
 function Education() {

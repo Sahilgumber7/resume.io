@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/popover"
 import { Button } from '@/components/ui/button'
 import { LayoutGrid } from 'lucide-react'
-import ResumeInfoContext from '@/context/ResumeInfoContext'
+import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
 

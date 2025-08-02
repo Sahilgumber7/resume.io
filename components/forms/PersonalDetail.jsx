@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ResumeInfoContext } from '@/context/ResumeInfoContext'
+import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 import { LoaderCircle } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import React, { useContext, useEffect, useState } from 'react'

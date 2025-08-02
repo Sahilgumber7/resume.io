@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import FormSection from '@/components/FormSection'
 import ResumePreview from '@/components/ResumePreview'
-import { ResumeInfoContext } from '@/context/ResumeInfoContext'
+import { ResumeInfoContext } from '../../../../../components/ResumeInfoContext'
+
 
 export default function EditResumePage() {
   const { resumeId } = useParams()

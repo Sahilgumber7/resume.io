@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { LoaderCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import RichTextEditor from '../RichTextEditor'
-import { ResumeInfoContext } from '@/context/ResumeInfoContext'
+import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 
 function Experience() {
   const [experienceList, setExperienceList] = useState([])

@@ -6,7 +6,7 @@ import { Rating } from '@smastrom/react-rating'
 import '@smastrom/react-rating/style.css'
 import { Button } from '@/components/ui/button'
 import { LoaderCircle } from 'lucide-react'
-import { ResumeInfoContext } from '@/context/ResumeInfoContext'
+import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
 
