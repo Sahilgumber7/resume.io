@@ -1,15 +1,17 @@
 'use client'
 
-import { Input } from '@/components/ui/input'
 import React, { useEffect, useState } from 'react'
-import { Rating } from '@smastrom/react-rating'
-import '@smastrom/react-rating/style.css'
+import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { LoaderCircle } from 'lucide-react'
 import { useParams } from 'next/navigation'
+import { Rating } from '@smastrom/react-rating'
+import '@smastrom/react-rating/style.css'
 import { toast } from 'sonner'
+import { useResumeInfo } from '@/components/ResumeInfoContext'
 
-function Skills({ resumeInfo, setResumeInfo, enabledNext }) {
+function Skills({ enabledNext }) {
+  const { resumeInfo, setResumeInfo } = useResumeInfo()
   const [skillsList, setSkillsList] = useState([{ name: '', rating: 0 }])
   const params = useParams()
   const resumeId = params?.resumeId
@@ -20,6 +22,13 @@ function Skills({ resumeInfo, setResumeInfo, enabledNext }) {
       setSkillsList(resumeInfo.skills)
     }
   }, [resumeInfo])
+
+  useEffect(() => {
+    setResumeInfo({
+      ...resumeInfo,
+      skills: skillsList,
+    })
+  }, [skillsList])
 
   const handleChange = (index, name, value) => {
     const updated = [...skillsList]
@@ -38,19 +47,12 @@ function Skills({ resumeInfo, setResumeInfo, enabledNext }) {
 
   const onSave = async () => {
     setLoading(true)
-    const payload = {
-      data: {
-        skills: skillsList.map(({ id, ...rest }) => rest),
-      },
-    }
 
     try {
       const res = await fetch(`/api/resume/${resumeId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ skills: skillsList }),
       })
 
       if (!res.ok) throw new Error()
@@ -64,29 +66,22 @@ function Skills({ resumeInfo, setResumeInfo, enabledNext }) {
     }
   }
 
-  useEffect(() => {
-    setResumeInfo({
-      ...resumeInfo,
-      skills: skillsList,
-    })
-  }, [skillsList])
-
   return (
-    <div className='p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10'>
-      <h2 className='font-bold text-lg'>Skills</h2>
-      <p className='text-muted-foreground mb-4'>Add your top professional skills</p>
+    <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
+      <h2 className="font-bold text-lg">Skills</h2>
+      <p className="text-muted-foreground mb-4">Add your top professional skills</p>
 
-      <div className='space-y-3'>
+      <div className="space-y-3">
         {skillsList.map((item, index) => (
-          <div key={index} className='flex justify-between items-center gap-3 border rounded-lg p-3'>
-            <div className='w-full'>
-              <label className='text-xs'>Skill Name</label>
+          <div key={index} className="flex justify-between items-center gap-3 border rounded-lg p-3">
+            <div className="w-full">
+              <label className="text-xs">Skill Name</label>
               <Input
                 value={item.name}
                 onChange={(e) => handleChange(index, 'name', e.target.value)}
               />
             </div>
-            <div className='flex items-center'>
+            <div className="flex items-center">
               <Rating
                 style={{ maxWidth: 120 }}
                 value={item.rating}
@@ -97,13 +92,13 @@ function Skills({ resumeInfo, setResumeInfo, enabledNext }) {
         ))}
       </div>
 
-      <div className='flex justify-between items-center mt-4'>
-        <div className='flex gap-2'>
-          <Button variant='outline' onClick={AddNewSkills}>+ Add Skill</Button>
-          <Button variant='outline' onClick={RemoveSkills}>- Remove</Button>
+      <div className="flex justify-between items-center mt-4">
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={AddNewSkills}>+ Add Skill</Button>
+          <Button variant="outline" onClick={RemoveSkills}>- Remove</Button>
         </div>
         <Button disabled={loading} onClick={onSave}>
-          {loading ? <LoaderCircle className='animate-spin w-4 h-4' /> : 'Save'}
+          {loading ? <LoaderCircle className="animate-spin w-4 h-4" /> : 'Save'}
         </Button>
       </div>
     </div>

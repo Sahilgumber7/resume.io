@@ -6,8 +6,10 @@ import { LoaderCircle } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { useResumeInfo } from '@/components/ResumeInfoContext'
 
-export default function PersonalDetail({ resumeInfo, setResumeInfo, enabledNext }) {
+export default function PersonalDetail({ enabledNext }) {
+  const { resumeInfo, setResumeInfo } = useResumeInfo()
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',

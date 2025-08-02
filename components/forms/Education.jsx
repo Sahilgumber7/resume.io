@@ -7,8 +7,10 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { LoaderCircle } from 'lucide-react'
 import { toast } from 'sonner'
+import { useResumeInfo } from '@/components/ResumeInfoContext'
 
-export default function Education({ resumeInfo, setResumeInfo }) {
+export default function Education() {
+  const { resumeInfo, setResumeInfo } = useResumeInfo()
   const [loading, setLoading] = useState(false)
   const searchParams = useSearchParams()
   const resumeId = searchParams.get('resumeId')
@@ -103,53 +105,27 @@ export default function Education({ resumeInfo, setResumeInfo }) {
           <div key={index} className='grid grid-cols-2 gap-3 border p-3 my-5 rounded-lg'>
             <div className='col-span-2'>
               <label>University Name</label>
-              <Input
-                name='universityName'
-                onChange={e => handleChange(e, index)}
-                value={item.universityName}
-              />
+              <Input name='universityName' onChange={e => handleChange(e, index)} value={item.universityName} />
             </div>
             <div>
               <label>Degree</label>
-              <Input
-                name='degree'
-                onChange={e => handleChange(e, index)}
-                value={item.degree}
-              />
+              <Input name='degree' onChange={e => handleChange(e, index)} value={item.degree} />
             </div>
             <div>
               <label>Major</label>
-              <Input
-                name='major'
-                onChange={e => handleChange(e, index)}
-                value={item.major}
-              />
+              <Input name='major' onChange={e => handleChange(e, index)} value={item.major} />
             </div>
             <div>
               <label>Start Date</label>
-              <Input
-                type='date'
-                name='startDate'
-                onChange={e => handleChange(e, index)}
-                value={item.startDate}
-              />
+              <Input type='date' name='startDate' onChange={e => handleChange(e, index)} value={item.startDate} />
             </div>
             <div>
               <label>End Date</label>
-              <Input
-                type='date'
-                name='endDate'
-                onChange={e => handleChange(e, index)}
-                value={item.endDate}
-              />
+              <Input type='date' name='endDate' onChange={e => handleChange(e, index)} value={item.endDate} />
             </div>
             <div className='col-span-2'>
               <label>Description</label>
-              <Textarea
-                name='description'
-                onChange={e => handleChange(e, index)}
-                value={item.description}
-              />
+              <Textarea name='description' onChange={e => handleChange(e, index)} value={item.description} />
             </div>
           </div>
         ))}

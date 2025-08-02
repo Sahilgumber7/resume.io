@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button'
 import { LoaderCircle } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
+import { useResumeInfo } from '@/components/ResumeInfoContext'
 
-function Summary({ resumeInfo, setResumeInfo, enabledNext }) {
+function Summary({ enabledNext }) {
+  const { resumeInfo, setResumeInfo } = useResumeInfo()
   const [summary, setSummary] = useState('')
   const [loading, setLoading] = useState(false)
   const params = useParams()
@@ -26,35 +28,28 @@ function Summary({ resumeInfo, setResumeInfo, enabledNext }) {
     })
   }, [summary])
 
-const handleSave = async () => {
-  setLoading(true);
+  const handleSave = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/resumes/${resumeId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ summary }),
+      })
 
-  const payload = {
-    summary: summary,
-  };
+      if (!res.ok) throw new Error()
 
-  try {
-    const res = await fetch(`/api/resumes/${resumeId}`, { // Corrected URL
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to update summary. Status: ${res.status}`);
+      toast('Summary updated successfully!')
+      enabledNext(true)
+    } catch (error) {
+      toast('Failed to update summary.')
+    } finally {
+      setLoading(false)
     }
-
-    toast('Summary updated successfully!');
-    enabledNext(true);
-  } catch (error) {
-    console.error('Save error:', error);
-    toast('Failed to update summary.');
-  } finally {
-    setLoading(false);
   }
-};
+
   return (
     <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
       <h2 className="font-bold text-lg">Professional Summary</h2>

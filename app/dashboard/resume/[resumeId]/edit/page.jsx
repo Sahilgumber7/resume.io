@@ -5,11 +5,12 @@ import { useParams } from 'next/navigation'
 import FormSection from '@/components/FormSection'
 import ResumePreview from '@/components/ResumePreview'
 import { Loader2 } from 'lucide-react'
+import { useResumeInfo } from '@/components/ResumeInfoContext'
 
 export default function EditResumePage() {
   const params = useParams()
   const resumeId = params?.resumeId
-  const [resumeInfo, setResumeInfo] = useState(null)
+  const { resumeInfo, setResumeInfo } = useResumeInfo()
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function EditResumePage() {
           setLoading(false)
         })
     }
-  }, [resumeId])
+  }, [resumeId, setResumeInfo])
 
   if (loading || !resumeInfo) {
     return (
@@ -37,11 +38,8 @@ export default function EditResumePage() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 p-6 md:p-10 gap-6 md:gap-10">
-      {/* Form Section */}
-      <FormSection resumeInfo={resumeInfo} setResumeInfo={setResumeInfo} />
-
-      {/* Resume Preview */}
-      <ResumePreview resumeInfo={resumeInfo} />
+      <FormSection />
+      <ResumePreview />
     </div>
   )
 }

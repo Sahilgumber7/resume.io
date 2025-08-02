@@ -1,20 +1,21 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { LoaderCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import RichTextEditor from '../RichTextEditor'
+import { useResumeInfo } from '@/components/ResumeInfoContext'
 
-export default function Experience({ resumeInfo, setResumeInfo }) {
-    const searchParams = useSearchParams()
-    const resumeId = searchParams.get('resumeId') || resumeInfo?._id
+export default function Experience() {
+  const { resumeInfo, setResumeInfo } = useResumeInfo()
+  const searchParams = useSearchParams()
+  const resumeId = searchParams.get('resumeId') || resumeInfo?._id
   const [experienceList, setExperienceList] = useState([])
   const [loading, setLoading] = useState(false)
 
-  // Load initial data from parent
   useEffect(() => {
     if (Array.isArray(resumeInfo?.Experience)) {
       setExperienceList(resumeInfo.Experience)
@@ -23,7 +24,6 @@ export default function Experience({ resumeInfo, setResumeInfo }) {
     }
   }, [resumeInfo])
 
-  // Sync back to parent
   useEffect(() => {
     setResumeInfo(prev => ({
       ...prev,
