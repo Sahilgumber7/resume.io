@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 import { LoaderCircle } from 'lucide-react'
-import { useSearchParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import React, { useContext, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -13,15 +13,31 @@ function PersonalDetail({ enabledNext }) {
   const [formData, setFormData] = useState(resumeInfo || {})
   const [loading, setLoading] = useState(false)
 
-  const searchParams = useSearchParams()
-  const resumeId = searchParams.get('resumeId')
+  const { resumeId } = useParams()
 
-  // Sync form data when resumeInfo updates
+  // ✅ Fetch resume from backend if context is empty
   useEffect(() => {
-    setFormData(resumeInfo || {})
-  }, [resumeInfo])
+    const fetchResume = async () => {
+      if (!resumeId) return
+      try {
+        const res = await fetch(`/api/resumes/${resumeId}`)
+        if (!res.ok) throw new Error('Failed to fetch resume data')
+        const data = await res.json()
+        setResumeInfo(data)
+        setFormData(data)
+      } catch (error) {
+        console.error('Failed to fetch resume info:', error)
+        toast.error('Could not load resume details')
+      }
+    }
 
-  // Disable "Next" by default when this form loads
+    if (!resumeInfo || Object.keys(resumeInfo).length === 0) {
+      fetchResume()
+    } else {
+      setFormData(resumeInfo)
+    }
+  }, [resumeId, resumeInfo, setResumeInfo])
+
   useEffect(() => {
     enabledNext(false)
   }, [enabledNext])
@@ -42,19 +58,27 @@ function PersonalDetail({ enabledNext }) {
 
   const onSave = async (e) => {
     e.preventDefault()
+
+    if (!resumeId) {
+      toast.error('Resume ID is missing from the URL')
+      return
+    }
+
     setLoading(true)
 
     try {
-      await fetch(`/api/resumes/${resumeId}`, {
-        method: 'PUT',
+      const response = await fetch(`/api/resumes/${resumeId}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ data: formData })
       })
 
-      enabledNext(true) // ✅ Allow navigation on successful save
-      toast('Details updated successfully')
+      if (!response.ok) throw new Error('Failed to update')
+
+      enabledNext(true)
+      toast.success('Details updated successfully!')
     } catch (error) {
       console.error('Failed to update resume:', error)
       toast.error('Failed to save changes')
@@ -75,7 +99,7 @@ function PersonalDetail({ enabledNext }) {
             <Input
               name="fullName"
               required
-              defaultValue={formData?.fullName}
+              value={formData.fullName || ''}
               onChange={handleInputChange}
             />
           </div>
@@ -84,7 +108,7 @@ function PersonalDetail({ enabledNext }) {
             <Input
               name="jobTitle"
               required
-              defaultValue={formData?.jobTitle}
+              value={formData.jobTitle || ''}
               onChange={handleInputChange}
             />
           </div>
@@ -93,7 +117,7 @@ function PersonalDetail({ enabledNext }) {
             <Input
               name="address"
               required
-              defaultValue={formData?.address}
+              value={formData.address || ''}
               onChange={handleInputChange}
             />
           </div>
@@ -102,7 +126,7 @@ function PersonalDetail({ enabledNext }) {
             <Input
               name="phone"
               required
-              defaultValue={formData?.phone}
+              value={formData.phone || ''}
               onChange={handleInputChange}
             />
           </div>
@@ -111,7 +135,7 @@ function PersonalDetail({ enabledNext }) {
             <Input
               name="email"
               required
-              defaultValue={formData?.email}
+              value={formData.email || ''}
               onChange={handleInputChange}
             />
           </div>

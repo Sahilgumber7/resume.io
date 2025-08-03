@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useContext, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { LoaderCircle } from 'lucide-react'
@@ -13,48 +13,57 @@ function Experience() {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
   const [experienceList, setExperienceList] = useState([])
   const [loading, setLoading] = useState(false)
-  const searchParams = useSearchParams()
-  const resumeId = searchParams.get('resumeId')
 
-  // Load from context once
-  useEffect(() => {
-    if (Array.isArray(resumeInfo?.Experience)) {
-      setExperienceList(resumeInfo.Experience)
-    }
-  }, [resumeInfo?.Experience])
+  const { resumeId } = useParams()
 
-  // Update context when experienceList changes meaningfully
+  // ✅ Fetch from backend if context is empty
   useEffect(() => {
-    const hasChanged = JSON.stringify(resumeInfo?.Experience) !== JSON.stringify(experienceList)
-    if (hasChanged) {
-      setResumeInfo((prev) => ({
-        ...prev,
-        Experience: experienceList,
-      }))
+    const fetchResume = async () => {
+      if (!resumeId) return
+      try {
+        const res = await fetch(`/api/resumes/${resumeId}`)
+        if (!res.ok) throw new Error('Failed to fetch resume data')
+        const data = await res.json()
+        setResumeInfo(data)
+        setExperienceList(data.Experience || [])
+      } catch (error) {
+        console.error('Failed to fetch experience:', error)
+        toast.error('Could not load experience')
+      }
     }
-  }, [experienceList])
+
+    if (!resumeInfo || Object.keys(resumeInfo).length === 0) {
+      fetchResume()
+    } else {
+      setExperienceList(resumeInfo.Experience || [])
+    }
+  }, [resumeId, resumeInfo, setResumeInfo])
+
+  const syncToContext = (newList) => {
+    setExperienceList(newList)
+    setResumeInfo((prev) => ({
+      ...prev,
+      Experience: newList,
+    }))
+  }
 
   const handleChange = (index, event) => {
     const { name, value } = event.target
-    setExperienceList((prev) => {
-      const updated = [...prev]
-      updated[index] = { ...updated[index], [name]: value }
-      return updated
-    })
+    const updated = [...experienceList]
+    updated[index] = { ...updated[index], [name]: value }
+    syncToContext(updated)
   }
 
   const handleRichTextEditor = (e, name, index) => {
     const value = e.target.value
-    setExperienceList((prev) => {
-      const updated = [...prev]
-      updated[index] = { ...updated[index], [name]: value }
-      return updated
-    })
+    const updated = [...experienceList]
+    updated[index] = { ...updated[index], [name]: value }
+    syncToContext(updated)
   }
 
   const addNewExperience = () => {
-    setExperienceList((prev) => [
-      ...prev,
+    const updated = [
+      ...experienceList,
       {
         title: '',
         companyName: '',
@@ -64,38 +73,37 @@ function Experience() {
         endDate: '',
         worksummary: '',
       },
-    ])
+    ]
+    syncToContext(updated)
   }
 
   const removeExperience = () => {
-    setExperienceList((prev) => prev.slice(0, -1))
+    const updated = experienceList.slice(0, -1)
+    syncToContext(updated)
   }
 
-  const onSave = async () => {
+  const handleSave = async () => {
     if (!resumeId) {
-      toast.error('Resume ID missing in URL!')
+      toast.error('Resume ID not found.')
       return
     }
 
     setLoading(true)
-
     try {
-      const response = await fetch(`/api/resumes/${resumeId}`, {
-        method: 'PUT',
+      const res = await fetch(`/api/resumes/${resumeId}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          Experience: experienceList.map(({ id, ...rest }) => rest), // omit `id` if needed
-        }),
+        body: JSON.stringify({ data: { Experience: experienceList } }),
       })
 
-      if (!response.ok) throw new Error('Failed to update experience')
+      if (!res.ok) throw new Error()
 
-      toast.success('Experience updated!')
-    } catch (err) {
-      console.error(err)
-      toast.error('Server error. Please try again.')
+      toast.success('Experience updated successfully!')
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to update experience.')
     } finally {
       setLoading(false)
     }
@@ -104,7 +112,7 @@ function Experience() {
   return (
     <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
       <h2 className="font-bold text-lg">Professional Experience</h2>
-      <p>Add your previous job experience</p>
+      <p className="text-muted-foreground mb-4">Add your previous job experience</p>
 
       {experienceList.map((item, index) => (
         <div
@@ -186,7 +194,7 @@ function Experience() {
             - Remove
           </Button>
         </div>
-        <Button onClick={onSave} disabled={loading}>
+        <Button onClick={handleSave} disabled={loading}>
           {loading ? <LoaderCircle className="w-4 h-4 animate-spin" /> : 'Save'}
         </Button>
       </div>

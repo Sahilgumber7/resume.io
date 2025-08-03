@@ -12,15 +12,31 @@ function Summary({ enabledNext }) {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
   const [summary, setSummary] = useState('')
   const [loading, setLoading] = useState(false)
-  const params = useParams()
-  const resumeId = params?.resumeId
 
-  // Set initial summary once
+  const { resumeId } = useParams()
+
+  // ✅ Fetch from backend if context is empty
   useEffect(() => {
-    if (resumeInfo?.summary !== undefined) {
-      setSummary(resumeInfo.summary)
+    const fetchResume = async () => {
+      if (!resumeId) return
+      try {
+        const res = await fetch(`/api/resumes/${resumeId}`)
+        if (!res.ok) throw new Error('Failed to fetch resume data')
+        const data = await res.json()
+        setResumeInfo(data)
+        setSummary(data.summary || '')
+      } catch (error) {
+        console.error('Failed to fetch resume summary:', error)
+        toast.error('Could not load summary')
+      }
     }
-  }, [resumeInfo?.summary])
+
+    if (!resumeInfo || Object.keys(resumeInfo).length === 0) {
+      fetchResume()
+    } else {
+      setSummary(resumeInfo.summary || '')
+    }
+  }, [resumeId, resumeInfo, setResumeInfo])
 
   const handleSave = async () => {
     if (!resumeId) {
@@ -31,11 +47,11 @@ function Summary({ enabledNext }) {
     setLoading(true)
     try {
       const res = await fetch(`/api/resumes/${resumeId}`, {
-        method: 'PUT',
+        method: 'PATCH', // ✅ use PATCH not PUT
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ summary }),
+        body: JSON.stringify({ data: { summary } }), // ✅ matches backend structure
       })
 
       if (!res.ok) throw new Error()
@@ -45,7 +61,7 @@ function Summary({ enabledNext }) {
       // Update context after successful save
       setResumeInfo((prev) => ({
         ...prev,
-        summary: summary,
+        summary,
       }))
 
       enabledNext?.(true)
@@ -64,14 +80,20 @@ function Summary({ enabledNext }) {
       </p>
 
       <Textarea
-        rows={6}
-        value={summary}
-        onChange={(e) => {
-          setSummary(e.target.value)
-          enabledNext?.(false)
-        }}
-        placeholder="E.g. Passionate software developer with 3+ years of experience..."
-      />
+      rows={6}
+      value={summary}
+      onChange={(e) => {
+      const newSummary = e.target.value
+      setSummary(newSummary)
+      setResumeInfo((prev) => ({
+      ...prev,
+      summary: newSummary,
+    }))
+    enabledNext?.(false)
+  }}
+  placeholder="E.g. Passionate software developer with 3+ years of experience..."
+/>
+
 
       <div className="flex justify-end mt-4">
         <Button disabled={loading} onClick={handleSave}>
