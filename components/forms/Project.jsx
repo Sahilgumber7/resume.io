@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { LoaderCircle } from 'lucide-react'
-
 import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 import { toast } from 'sonner'
 
@@ -15,113 +14,80 @@ function Projects() {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
   const searchParams = useSearchParams()
   const resumeId = searchParams.get('resumeId')
-
-  const [projects, setProjects] = useState([
-    {
-      title: '',
-      description: ''
-    }
-  ])
+  const [projects, setProjects] = useState([{ title: '', description: '' }])
 
   useEffect(() => {
-    if (resumeInfo?.projects) {
+    if (resumeInfo?.projects && JSON.stringify(resumeInfo.projects) !== JSON.stringify(projects)) {
       setProjects(resumeInfo.projects)
     }
-  }, [resumeInfo])
+  }, [resumeInfo?.projects])
 
-  const handleChange = (event, index) => {
-    const newEntries = [...projects]
-    const { name, value } = event.target
-    newEntries[index][name] = value
-    setProjects(newEntries)
-  }
-
-  const addNewProject = () => {
-    setProjects(prev => [...prev, { title: '', description: '' }])
-  }
-
-  const removeProject = () => {
-    setProjects(prev => prev.slice(0, -1))
+  const handleChange = (e, index) => {
+    const updated = [...projects]
+    updated[index][e.target.name] = e.target.value
+    setProjects(updated)
   }
 
   const onSave = async () => {
-    if (!resumeId) {
-      toast.error('Resume ID not found in URL!')
-      return
-    }
+    if (!resumeId) return toast.error('Resume ID not found')
 
     setLoading(true)
-
-    const data = {
-      projects: projects.map(({ _id, ...rest }) => rest) // omit _id if present
-    }
-
     try {
-      const response = await fetch(`/api/resume/${resumeId}`, {
+      const res = await fetch(`/api/resume/${resumeId}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projects: projects.map(({ _id, ...rest }) => rest),
+        }),
       })
 
-      if (!response.ok) throw new Error('Failed to update')
-
+      if (!res.ok) throw new Error()
       toast.success('Projects updated!')
-    } catch (error) {
-      console.error(error)
-      toast.error('Server error. Please try again!')
+      setResumeInfo(prev => ({ ...prev, projects }))
+    } catch {
+      toast.error('Failed to update projects')
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    setResumeInfo({
-      ...resumeInfo,
-      projects
-    })
-  }, [projects])
-
   return (
-    <div className='p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10'>
-      <h2 className='font-bold text-lg'>Projects</h2>
+    <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
+      <h2 className="font-bold text-lg">Projects</h2>
       <p>Add your projects and descriptions</p>
 
-      <div>
-        {projects.map((item, index) => (
-          <div key={index} className='grid gap-3 border p-3 my-5 rounded-lg'>
-            <div>
-              <label>Project Title</label>
-              <Input
-                name='title'
-                onChange={e => handleChange(e, index)}
-                value={item.title}
-              />
-            </div>
-            <div>
-              <label>Description</label>
-              <Textarea
-                name='description'
-                onChange={e => handleChange(e, index)}
-                value={item.description}
-              />
-            </div>
+      {projects.map((item, index) => (
+        <div key={index} className="grid gap-3 border p-3 my-5 rounded-lg">
+          <div>
+            <label>Project Title</label>
+            <Input
+              name="title"
+              value={item.title}
+              onChange={(e) => handleChange(e, index)}
+            />
           </div>
-        ))}
-      </div>
+          <div>
+            <label>Description</label>
+            <Textarea
+              name="description"
+              value={item.description}
+              onChange={(e) => handleChange(e, index)}
+            />
+          </div>
+        </div>
+      ))}
 
-      <div className='flex justify-between'>
-        <div className='flex gap-2'>
-          <Button variant='outline' onClick={addNewProject} className='text-primary'>
+      <div className="flex justify-between">
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setProjects([...projects, { title: '', description: '' }])}>
             + Add More Projects
           </Button>
-          <Button variant='outline' onClick={removeProject} className='text-primary'>
+          <Button variant="outline" onClick={() => setProjects(projects.slice(0, -1))}>
             - Remove
           </Button>
         </div>
         <Button disabled={loading} onClick={onSave}>
-          {loading ? <LoaderCircle className='animate-spin' /> : 'Save'}
+          {loading ? <LoaderCircle className="animate-spin" /> : 'Save'}
         </Button>
       </div>
     </div>

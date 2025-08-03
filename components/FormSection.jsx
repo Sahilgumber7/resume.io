@@ -6,13 +6,13 @@ import Summary from './forms/Summary'
 import Experience from './forms/Experience'
 import Education from './forms/Education'
 import Skills from './forms/Skills'
+import Projects from './forms/Project' // ✅ Corrected import
 import ThemeColor from './ThemeColor'
 
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, ArrowRight, Home } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
-import Projects from './forms/Project'
 
 function FormSection() {
   const [activeFormIndex, setActiveFormIndex] = useState(1)
@@ -22,21 +22,26 @@ function FormSection() {
   const router = useRouter()
   const resumeId = params?.resumeId
 
+  // ✅ Redirect to preview after step 6 (i.e., Projects)
   useEffect(() => {
-    if (activeFormIndex === 6) {
+    if (activeFormIndex === 7) {
       router.push(`/my-resume/${resumeId}/view`)
     }
   }, [activeFormIndex, resumeId, router])
 
   return (
     <div>
+      {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-5">
           <Link href="/dashboard">
-            <Button><Home /></Button>
+            <Button>
+              <Home />
+            </Button>
           </Link>
           <ThemeColor />
         </div>
+
         <div className="flex gap-2">
           {activeFormIndex > 1 && (
             <Button size="sm" onClick={() => setActiveFormIndex((i) => i - 1)}>

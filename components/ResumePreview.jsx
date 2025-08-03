@@ -26,7 +26,7 @@ function ResumePreview() {
         {resumeInfo?.experience?.length>0&& <ExperiencePreview resumeInfo={resumeInfo} />}
         {/* Projects  */}
         {resumeInfo?.projects?.length>0&& <ProjectPreview resumeInfo={resumeInfo} />}
-        {/* Skilss  */}
+        {/* Skills  */}
         {resumeInfo?.skills?.length>0&&    <SkillsPreview resumeInfo={resumeInfo}/>}
         
     </div>

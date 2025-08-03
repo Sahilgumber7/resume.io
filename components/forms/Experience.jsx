@@ -10,33 +10,50 @@ import RichTextEditor from '../RichTextEditor'
 import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 
 function Experience() {
-  const [experienceList, setExperienceList] = useState([])
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
+  const [experienceList, setExperienceList] = useState([])
+  const [loading, setLoading] = useState(false)
   const searchParams = useSearchParams()
   const resumeId = searchParams.get('resumeId')
-  const [loading, setLoading] = useState(false)
 
+  // Load from context once
   useEffect(() => {
-    if (resumeInfo?.Experience?.length > 0) {
+    if (Array.isArray(resumeInfo?.Experience)) {
       setExperienceList(resumeInfo.Experience)
     }
-  }, [resumeInfo])
+  }, [resumeInfo?.Experience])
+
+  // Update context when experienceList changes meaningfully
+  useEffect(() => {
+    const hasChanged = JSON.stringify(resumeInfo?.Experience) !== JSON.stringify(experienceList)
+    if (hasChanged) {
+      setResumeInfo((prev) => ({
+        ...prev,
+        Experience: experienceList,
+      }))
+    }
+  }, [experienceList])
 
   const handleChange = (index, event) => {
-    const updated = [...experienceList]
     const { name, value } = event.target
-    updated[index][name] = value
-    setExperienceList(updated)
+    setExperienceList((prev) => {
+      const updated = [...prev]
+      updated[index] = { ...updated[index], [name]: value }
+      return updated
+    })
   }
 
   const handleRichTextEditor = (e, name, index) => {
-    const updated = [...experienceList]
-    updated[index][name] = e.target.value
-    setExperienceList(updated)
+    const value = e.target.value
+    setExperienceList((prev) => {
+      const updated = [...prev]
+      updated[index] = { ...updated[index], [name]: value }
+      return updated
+    })
   }
 
   const addNewExperience = () => {
-    setExperienceList(prev => [
+    setExperienceList((prev) => [
       ...prev,
       {
         title: '',
@@ -45,21 +62,14 @@ function Experience() {
         state: '',
         startDate: '',
         endDate: '',
-        worksummary: ''
-      }
+        worksummary: '',
+      },
     ])
   }
 
   const removeExperience = () => {
-    setExperienceList(prev => prev.slice(0, -1))
+    setExperienceList((prev) => prev.slice(0, -1))
   }
-
-  useEffect(() => {
-    setResumeInfo({
-      ...resumeInfo,
-      Experience: experienceList
-    })
-  }, [experienceList])
 
   const onSave = async () => {
     if (!resumeId) {
@@ -73,11 +83,11 @@ function Experience() {
       const response = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          Experience: experienceList.map(({ id, ...rest }) => rest)
-        })
+          Experience: experienceList.map(({ id, ...rest }) => rest), // omit `id` if needed
+        }),
       })
 
       if (!response.ok) throw new Error('Failed to update experience')
@@ -92,67 +102,70 @@ function Experience() {
   }
 
   return (
-    <div className='p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10'>
-      <h2 className='font-bold text-lg'>Professional Experience</h2>
+    <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
+      <h2 className="font-bold text-lg">Professional Experience</h2>
       <p>Add your previous job experience</p>
 
       {experienceList.map((item, index) => (
-        <div key={index} className='grid grid-cols-2 gap-3 border p-3 my-5 rounded-lg'>
+        <div
+          key={index}
+          className="grid grid-cols-2 gap-3 border p-3 my-5 rounded-lg"
+        >
           <div>
-            <label className='text-xs'>Position Title</label>
+            <label className="text-xs">Position Title</label>
             <Input
-              name='title'
-              onChange={e => handleChange(index, e)}
+              name="title"
               value={item.title}
+              onChange={(e) => handleChange(index, e)}
             />
           </div>
           <div>
-            <label className='text-xs'>Company Name</label>
+            <label className="text-xs">Company Name</label>
             <Input
-              name='companyName'
-              onChange={e => handleChange(index, e)}
+              name="companyName"
               value={item.companyName}
+              onChange={(e) => handleChange(index, e)}
             />
           </div>
           <div>
-            <label className='text-xs'>City</label>
+            <label className="text-xs">City</label>
             <Input
-              name='city'
-              onChange={e => handleChange(index, e)}
+              name="city"
               value={item.city}
+              onChange={(e) => handleChange(index, e)}
             />
           </div>
           <div>
-            <label className='text-xs'>State</label>
+            <label className="text-xs">State</label>
             <Input
-              name='state'
-              onChange={e => handleChange(index, e)}
+              name="state"
               value={item.state}
+              onChange={(e) => handleChange(index, e)}
             />
           </div>
           <div>
-            <label className='text-xs'>Start Date</label>
+            <label className="text-xs">Start Date</label>
             <Input
-              type='date'
-              name='startDate'
-              onChange={e => handleChange(index, e)}
+              type="date"
+              name="startDate"
               value={item.startDate}
+              onChange={(e) => handleChange(index, e)}
             />
           </div>
           <div>
-            <label className='text-xs'>End Date</label>
+            <label className="text-xs">End Date</label>
             <Input
-              type='date'
-              name='endDate'
-              onChange={e => handleChange(index, e)}
+              type="date"
+              name="endDate"
               value={item.endDate}
+              onChange={(e) => handleChange(index, e)}
             />
           </div>
-          <div className='col-span-2'>
+          <div className="col-span-2">
             <RichTextEditor
               index={index}
               defaultValue={item.worksummary}
-              onRichTextEditorChange={e =>
+              onRichTextEditorChange={(e) =>
                 handleRichTextEditor(e, 'worksummary', index)
               }
             />
@@ -160,17 +173,21 @@ function Experience() {
         </div>
       ))}
 
-      <div className='flex justify-between'>
-        <div className='flex gap-2'>
-          <Button variant='outline' onClick={addNewExperience} className='text-primary'>
+      <div className="flex justify-between mt-4">
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={addNewExperience}>
             + Add More Experience
           </Button>
-          <Button variant='outline' onClick={removeExperience} className='text-primary'>
+          <Button
+            variant="outline"
+            onClick={removeExperience}
+            disabled={experienceList.length === 0}
+          >
             - Remove
           </Button>
         </div>
-        <Button disabled={loading} onClick={onSave}>
-          {loading ? <LoaderCircle className='animate-spin' /> : 'Save'}
+        <Button onClick={onSave} disabled={loading}>
+          {loading ? <LoaderCircle className="w-4 h-4 animate-spin" /> : 'Save'}
         </Button>
       </div>
     </div>

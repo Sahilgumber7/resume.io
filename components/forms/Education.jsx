@@ -26,20 +26,34 @@ function Education() {
     }
   ])
 
+  // Load education from context
   useEffect(() => {
-    if (resumeInfo?.education) {
+    if (Array.isArray(resumeInfo?.education)) {
       setEducationalList(resumeInfo.education)
     }
-  }, [resumeInfo])
+  }, [resumeInfo?.education])
+
+  // Update context when educationalList changes
+  useEffect(() => {
+    const hasChanged = JSON.stringify(resumeInfo?.education) !== JSON.stringify(educationalList)
+    if (hasChanged) {
+      setResumeInfo(prev => ({
+        ...prev,
+        education: educationalList
+      }))
+    }
+  }, [educationalList])
 
   const handleChange = (event, index) => {
-    const newEntries = [...educationalList]
     const { name, value } = event.target
-    newEntries[index][name] = value
-    setEducationalList(newEntries)
+    setEducationalList(prev => {
+      const updated = [...prev]
+      updated[index] = { ...updated[index], [name]: value }
+      return updated
+    })
   }
 
-  const AddNewEducation = () => {
+  const addNewEducation = () => {
     setEducationalList(prev => [
       ...prev,
       {
@@ -53,8 +67,10 @@ function Education() {
     ])
   }
 
-  const RemoveEducation = () => {
-    setEducationalList(prev => prev.slice(0, -1))
+  const removeEducation = () => {
+    if (educationalList.length > 1) {
+      setEducationalList(prev => prev.slice(0, -1))
+    }
   }
 
   const onSave = async () => {
@@ -64,22 +80,21 @@ function Education() {
     }
 
     setLoading(true)
-    const data = {
-      education: educationalList.map(({ id, ...rest }) => rest)
-    }
 
     try {
-      const response = await fetch(`/api/resume/${resumeId}`, {
+      const response = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+          education: educationalList.map(({ id, ...rest }) => rest)
+        })
       })
 
-      if (!response.ok) throw new Error('Failed to update')
+      if (!response.ok) throw new Error('Failed to update education')
 
-      toast.success('Details updated!')
+      toast.success('Education details updated!')
     } catch (error) {
       console.error(error)
       toast.error('Server error. Please try again!')
@@ -88,86 +103,81 @@ function Education() {
     }
   }
 
-  useEffect(() => {
-    setResumeInfo({
-      ...resumeInfo,
-      education: educationalList
-    })
-  }, [educationalList])
-
   return (
-    <div className='p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10'>
-      <h2 className='font-bold text-lg'>Education</h2>
+    <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
+      <h2 className="font-bold text-lg">Education</h2>
       <p>Add your educational details</p>
 
-      <div>
-        {educationalList.map((item, index) => (
-          <div key={index} className='grid grid-cols-2 gap-3 border p-3 my-5 rounded-lg'>
-            <div className='col-span-2'>
-              <label>University Name</label>
-              <Input
-                name='universityName'
-                onChange={e => handleChange(e, index)}
-                value={item.universityName}
-              />
-            </div>
-            <div>
-              <label>Degree</label>
-              <Input
-                name='degree'
-                onChange={e => handleChange(e, index)}
-                value={item.degree}
-              />
-            </div>
-            <div>
-              <label>Major</label>
-              <Input
-                name='major'
-                onChange={e => handleChange(e, index)}
-                value={item.major}
-              />
-            </div>
-            <div>
-              <label>Start Date</label>
-              <Input
-                type='date'
-                name='startDate'
-                onChange={e => handleChange(e, index)}
-                value={item.startDate}
-              />
-            </div>
-            <div>
-              <label>End Date</label>
-              <Input
-                type='date'
-                name='endDate'
-                onChange={e => handleChange(e, index)}
-                value={item.endDate}
-              />
-            </div>
-            <div className='col-span-2'>
-              <label>Description</label>
-              <Textarea
-                name='description'
-                onChange={e => handleChange(e, index)}
-                value={item.description}
-              />
-            </div>
+      {educationalList.map((item, index) => (
+        <div key={index} className="grid grid-cols-2 gap-3 border p-3 my-5 rounded-lg">
+          <div className="col-span-2">
+            <label>University Name</label>
+            <Input
+              name="universityName"
+              value={item.universityName}
+              onChange={(e) => handleChange(e, index)}
+            />
           </div>
-        ))}
-      </div>
+          <div>
+            <label>Degree</label>
+            <Input
+              name="degree"
+              value={item.degree}
+              onChange={(e) => handleChange(e, index)}
+            />
+          </div>
+          <div>
+            <label>Major</label>
+            <Input
+              name="major"
+              value={item.major}
+              onChange={(e) => handleChange(e, index)}
+            />
+          </div>
+          <div>
+            <label>Start Date</label>
+            <Input
+              type="date"
+              name="startDate"
+              value={item.startDate}
+              onChange={(e) => handleChange(e, index)}
+            />
+          </div>
+          <div>
+            <label>End Date</label>
+            <Input
+              type="date"
+              name="endDate"
+              value={item.endDate}
+              onChange={(e) => handleChange(e, index)}
+            />
+          </div>
+          <div className="col-span-2">
+            <label>Description</label>
+            <Textarea
+              name="description"
+              value={item.description}
+              onChange={(e) => handleChange(e, index)}
+            />
+          </div>
+        </div>
+      ))}
 
-      <div className='flex justify-between'>
-        <div className='flex gap-2'>
-          <Button variant='outline' onClick={AddNewEducation} className='text-primary'>
+      <div className="flex justify-between">
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={addNewEducation}>
             + Add More Education
           </Button>
-          <Button variant='outline' onClick={RemoveEducation} className='text-primary'>
+          <Button
+            variant="outline"
+            onClick={removeEducation}
+            disabled={educationalList.length <= 1}
+          >
             - Remove
           </Button>
         </div>
-        <Button disabled={loading} onClick={onSave}>
-          {loading ? <LoaderCircle className='animate-spin' /> : 'Save'}
+        <Button onClick={onSave} disabled={loading}>
+          {loading ? <LoaderCircle className="w-4 h-4 animate-spin" /> : 'Save'}
         </Button>
       </div>
     </div>

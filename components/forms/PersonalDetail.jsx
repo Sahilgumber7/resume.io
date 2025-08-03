@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 import { LoaderCircle } from 'lucide-react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import React, { useContext, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -16,12 +16,17 @@ function PersonalDetail({ enabledNext }) {
   const searchParams = useSearchParams()
   const resumeId = searchParams.get('resumeId')
 
+  // Sync form data when resumeInfo updates
   useEffect(() => {
     setFormData(resumeInfo || {})
   }, [resumeInfo])
 
-  const handleInputChange = (e) => {
+  // Disable "Next" by default when this form loads
+  useEffect(() => {
     enabledNext(false)
+  }, [enabledNext])
+
+  const handleInputChange = (e) => {
     const { name, value } = e.target
 
     setFormData((prev) => ({
@@ -40,7 +45,6 @@ function PersonalDetail({ enabledNext }) {
     setLoading(true)
 
     try {
-      // Replace with your actual API call (Supabase, fetch, etc.)
       await fetch(`/api/resumes/${resumeId}`, {
         method: 'PUT',
         headers: {
@@ -49,7 +53,7 @@ function PersonalDetail({ enabledNext }) {
         body: JSON.stringify({ data: formData })
       })
 
-      enabledNext(true)
+      enabledNext(true) // ✅ Allow navigation on successful save
       toast('Details updated successfully')
     } catch (error) {
       console.error('Failed to update resume:', error)

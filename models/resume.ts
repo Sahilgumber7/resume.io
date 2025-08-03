@@ -40,7 +40,7 @@ const ResumeSchema = new mongoose.Schema(
     education: [
       {
         degree: String,
-        institution: String,
+        universityName: String,
         major: String,
         startDate: String,
         endDate: String,

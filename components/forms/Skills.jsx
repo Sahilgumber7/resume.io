@@ -1,7 +1,7 @@
 'use client'
 
-import { Input } from '@/components/ui/input'
 import React, { useContext, useEffect, useState } from 'react'
+import { Input } from '@/components/ui/input'
 import { Rating } from '@smastrom/react-rating'
 import '@smastrom/react-rating/style.css'
 import { Button } from '@/components/ui/button'
@@ -11,20 +11,16 @@ import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
 
 function Skills() {
-  const [skillsList, setSkillsList] = useState([
-    { name: '', rating: 0 },
-  ])
-  const params = useParams()
-  const resumeId = params?.resumeId
+  const { resumeId } = useParams()
+  const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
+  const [skillsList, setSkillsList] = useState([{ name: '', rating: 0 }])
   const [loading, setLoading] = useState(false)
 
-  const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
-
   useEffect(() => {
-    if (resumeInfo?.skills?.length > 0) {
+    if (resumeInfo?.skills && JSON.stringify(resumeInfo.skills) !== JSON.stringify(skillsList)) {
       setSkillsList(resumeInfo.skills)
     }
-  }, [resumeInfo])
+  }, [resumeInfo?.skills])
 
   const handleChange = (index, name, value) => {
     const updated = [...skillsList]
@@ -32,64 +28,45 @@ function Skills() {
     setSkillsList(updated)
   }
 
-  const AddNewSkills = () => {
-    setSkillsList([...skillsList, { name: '', rating: 0 }])
-  }
-
-  const RemoveSkills = () => {
-    setSkillsList((prev) => prev.slice(0, -1))
-  }
-
   const onSave = async () => {
     setLoading(true)
-    const payload = {
-      data: {
-        skills: skillsList.map(({ id, ...rest }) => rest),
-      },
-    }
-
     try {
+      const payload = {
+        data: { skills: skillsList.map(({ id, ...rest }) => rest) },
+      }
+
       const res = await fetch(`/api/resume/${resumeId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
 
       if (!res.ok) throw new Error()
-
-      toast('Skills updated successfully!')
-    } catch (err) {
-      toast('Error updating skills. Try again!')
+      toast.success('Skills updated!')
+      setResumeInfo(prev => ({ ...prev, skills: skillsList }))
+    } catch {
+      toast.error('Failed to update skills.')
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    setResumeInfo({
-      ...resumeInfo,
-      skills: skillsList,
-    })
-  }, [skillsList])
-
   return (
-    <div className='p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10'>
-      <h2 className='font-bold text-lg'>Skills</h2>
-      <p className='text-muted-foreground mb-4'>Add your top professional skills</p>
+    <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
+      <h2 className="font-bold text-lg">Skills</h2>
+      <p className="text-muted-foreground mb-4">Add your top professional skills</p>
 
-      <div className='space-y-3'>
+      <div className="space-y-3">
         {skillsList.map((item, index) => (
-          <div key={index} className='flex justify-between items-center gap-3 border rounded-lg p-3'>
-            <div className='w-full'>
-              <label className='text-xs'>Skill Name</label>
+          <div key={index} className="flex justify-between items-center gap-3 border rounded-lg p-3">
+            <div className="w-full">
+              <label className="text-xs">Skill Name</label>
               <Input
-                defaultValue={item.name}
+                value={item.name}
                 onChange={(e) => handleChange(index, 'name', e.target.value)}
               />
             </div>
-            <div className='flex items-center'>
+            <div className="flex items-center">
               <Rating
                 style={{ maxWidth: 120 }}
                 value={item.rating}
@@ -100,13 +77,17 @@ function Skills() {
         ))}
       </div>
 
-      <div className='flex justify-between items-center mt-4'>
-        <div className='flex gap-2'>
-          <Button variant='outline' onClick={AddNewSkills}>+ Add Skill</Button>
-          <Button variant='outline' onClick={RemoveSkills}>- Remove</Button>
+      <div className="flex justify-between items-center mt-4">
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setSkillsList([...skillsList, { name: '', rating: 0 }])}>
+            + Add Skill
+          </Button>
+          <Button variant="outline" onClick={() => setSkillsList(skillsList.slice(0, -1))}>
+            - Remove
+          </Button>
         </div>
         <Button disabled={loading} onClick={onSave}>
-          {loading ? <LoaderCircle className='animate-spin w-4 h-4' /> : 'Save'}
+          {loading ? <LoaderCircle className="animate-spin w-4 h-4" /> : 'Save'}
         </Button>
       </div>
     </div>
