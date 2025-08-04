@@ -14,37 +14,68 @@ function Projects() {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
   const searchParams = useSearchParams()
   const resumeId = searchParams.get('resumeId')
+
   const [projects, setProjects] = useState([{ title: '', description: '' }])
 
+  // ✅ Fetch resume from backend if context is empty
   useEffect(() => {
-    if (resumeInfo?.projects && JSON.stringify(resumeInfo.projects) !== JSON.stringify(projects)) {
+    const fetchResume = async () => {
+      if (!resumeId) return
+      try {
+        const res = await fetch(`/api/resumes/${resumeId}`)
+        if (!res.ok) throw new Error('Failed to fetch resume data')
+        const data = await res.json()
+        setResumeInfo(data)
+        setProjects(data.projects || [{ title: '', description: '' }])
+      } catch (error) {
+        console.error('Failed to fetch resume info:', error)
+        toast.error('Could not load resume projects')
+      }
+    }
+
+    if (!resumeInfo || Object.keys(resumeInfo).length === 0) {
+      fetchResume()
+    } else if (resumeInfo.projects) {
       setProjects(resumeInfo.projects)
     }
-  }, [resumeInfo?.projects])
+  }, [resumeId, resumeInfo, setResumeInfo])
 
+  // ✅ Real-time sync with context for live preview
   const handleChange = (e, index) => {
+    const { name, value } = e.target
     const updated = [...projects]
-    updated[index][e.target.name] = e.target.value
+    updated[index] = { ...updated[index], [name]: value }
     setProjects(updated)
+
+    setResumeInfo((prev) => ({
+      ...prev,
+      projects: updated,
+    }))
   }
 
   const onSave = async () => {
-    if (!resumeId) return toast.error('Resume ID not found')
+    if (!resumeId) {
+      toast.error('Resume ID not found')
+      return
+    }
 
     setLoading(true)
+
     try {
-      const res = await fetch(`/api/resume/${resumeId}`, {
+      const cleanProjects = projects.map(({ _id, ...rest }) => rest)
+
+      const res = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projects: projects.map(({ _id, ...rest }) => rest),
-        }),
+        body: JSON.stringify({ projects: cleanProjects }),
       })
 
       if (!res.ok) throw new Error()
+
+      setResumeInfo((prev) => ({ ...prev, projects: cleanProjects }))
       toast.success('Projects updated!')
-      setResumeInfo(prev => ({ ...prev, projects }))
-    } catch {
+    } catch (error) {
+      console.error(error)
       toast.error('Failed to update projects')
     } finally {
       setLoading(false)
@@ -79,10 +110,28 @@ function Projects() {
 
       <div className="flex justify-between">
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setProjects([...projects, { title: '', description: '' }])}>
+          <Button
+            variant="outline"
+            onClick={() =>
+              setProjects((prev) => {
+                const updated = [...prev, { title: '', description: '' }]
+                setResumeInfo((ctx) => ({ ...ctx, projects: updated }))
+                return updated
+              })
+            }
+          >
             + Add More Projects
           </Button>
-          <Button variant="outline" onClick={() => setProjects(projects.slice(0, -1))}>
+          <Button
+            variant="outline"
+            onClick={() =>
+              setProjects((prev) => {
+                const updated = prev.length > 1 ? prev.slice(0, -1) : prev
+                setResumeInfo((ctx) => ({ ...ctx, projects: updated }))
+                return updated
+              })
+            }
+          >
             - Remove
           </Button>
         </div>

@@ -16,7 +16,7 @@ function Experience() {
 
   const { resumeId } = useParams()
 
-  // ✅ Fetch from backend if context is empty
+  // ✅ Fetch resume data only if context is empty
   useEffect(() => {
     const fetchResume = async () => {
       if (!resumeId) return
@@ -25,7 +25,7 @@ function Experience() {
         if (!res.ok) throw new Error('Failed to fetch resume data')
         const data = await res.json()
         setResumeInfo(data)
-        setExperienceList(data.Experience || [])
+        setExperienceList(data.experience || [])
       } catch (error) {
         console.error('Failed to fetch experience:', error)
         toast.error('Could not load experience')
@@ -35,7 +35,7 @@ function Experience() {
     if (!resumeInfo || Object.keys(resumeInfo).length === 0) {
       fetchResume()
     } else {
-      setExperienceList(resumeInfo.Experience || [])
+      setExperienceList(resumeInfo.experience || [])
     }
   }, [resumeId, resumeInfo, setResumeInfo])
 
@@ -43,7 +43,7 @@ function Experience() {
     setExperienceList(newList)
     setResumeInfo((prev) => ({
       ...prev,
-      Experience: newList,
+      experience: newList,
     }))
   }
 
@@ -78,8 +78,10 @@ function Experience() {
   }
 
   const removeExperience = () => {
-    const updated = experienceList.slice(0, -1)
-    syncToContext(updated)
+    if (experienceList.length > 0) {
+      const updated = experienceList.slice(0, -1)
+      syncToContext(updated)
+    }
   }
 
   const handleSave = async () => {
@@ -90,16 +92,21 @@ function Experience() {
 
     setLoading(true)
     try {
+      const cleanedExperience = experienceList.map(({ id, _id, ...rest }) => rest)
+
       const res = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ data: { Experience: experienceList } }),
+        body: JSON.stringify({
+          experience: cleanedExperience,
+        }),
       })
 
       if (!res.ok) throw new Error()
 
+      setResumeInfo(prev => ({ ...prev, experience: cleanedExperience }))
       toast.success('Experience updated successfully!')
     } catch (error) {
       console.error(error)

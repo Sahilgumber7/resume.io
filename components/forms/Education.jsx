@@ -26,36 +26,54 @@ function Education() {
     }
   ])
 
-  // Load education from context
+  // ✅ Fetch resume if context is empty
   useEffect(() => {
-    if (Array.isArray(resumeInfo?.education)) {
+    const fetchResume = async () => {
+      if (!resumeId) return
+      try {
+        const res = await fetch(`/api/resumes/${resumeId}`)
+        if (!res.ok) throw new Error('Failed to fetch resume data')
+        const data = await res.json()
+        setResumeInfo(data)
+        setEducationalList(data.education || [
+          {
+            universityName: '',
+            degree: '',
+            major: '',
+            startDate: '',
+            endDate: '',
+            description: ''
+          }
+        ])
+      } catch (error) {
+        console.error('Failed to fetch resume info:', error)
+        toast.error('Could not load education info')
+      }
+    }
+
+    if (!resumeInfo || Object.keys(resumeInfo).length === 0) {
+      fetchResume()
+    } else if (resumeInfo.education) {
       setEducationalList(resumeInfo.education)
     }
-  }, [resumeInfo?.education])
+  }, [resumeId, resumeInfo, setResumeInfo])
 
-  // Update context when educationalList changes
-  useEffect(() => {
-    const hasChanged = JSON.stringify(resumeInfo?.education) !== JSON.stringify(educationalList)
-    if (hasChanged) {
-      setResumeInfo(prev => ({
-        ...prev,
-        education: educationalList
-      }))
-    }
-  }, [educationalList])
-
+  // ✅ Real-time context update
   const handleChange = (event, index) => {
     const { name, value } = event.target
-    setEducationalList(prev => {
-      const updated = [...prev]
-      updated[index] = { ...updated[index], [name]: value }
-      return updated
-    })
+    const updated = [...educationalList]
+    updated[index] = { ...updated[index], [name]: value }
+    setEducationalList(updated)
+
+    setResumeInfo(prev => ({
+      ...prev,
+      education: updated
+    }))
   }
 
   const addNewEducation = () => {
-    setEducationalList(prev => [
-      ...prev,
+    const updated = [
+      ...educationalList,
       {
         universityName: '',
         degree: '',
@@ -64,12 +82,22 @@ function Education() {
         endDate: '',
         description: ''
       }
-    ])
+    ]
+    setEducationalList(updated)
+    setResumeInfo(prev => ({
+      ...prev,
+      education: updated
+    }))
   }
 
   const removeEducation = () => {
     if (educationalList.length > 1) {
-      setEducationalList(prev => prev.slice(0, -1))
+      const updated = educationalList.slice(0, -1)
+      setEducationalList(updated)
+      setResumeInfo(prev => ({
+        ...prev,
+        education: updated
+      }))
     }
   }
 
@@ -82,18 +110,21 @@ function Education() {
     setLoading(true)
 
     try {
+      const cleanedEducation = educationalList.map(({ id, _id, ...rest }) => rest)
+
       const response = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          education: educationalList.map(({ id, ...rest }) => rest)
+          education: cleanedEducation
         })
       })
 
       if (!response.ok) throw new Error('Failed to update education')
 
+      setResumeInfo(prev => ({ ...prev, education: cleanedEducation }))
       toast.success('Education details updated!')
     } catch (error) {
       console.error(error)

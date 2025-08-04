@@ -47,7 +47,7 @@ function Summary({ enabledNext }) {
     setLoading(true)
     try {
       const res = await fetch(`/api/resumes/${resumeId}`, {
-        method: 'PATCH', // ✅ use PATCH not PUT
+        method: 'PATCH', 
         headers: {
           'Content-Type': 'application/json',
         },
