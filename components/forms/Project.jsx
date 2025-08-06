@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useContext, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -12,12 +12,11 @@ import { toast } from 'sonner'
 function Projects() {
   const [loading, setLoading] = useState(false)
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
-  const searchParams = useSearchParams()
-  const resumeId = searchParams.get('resumeId')
+  const { resumeId } = useParams() // ✅ FIX: useParams instead of useSearchParams
 
-  const [projects, setProjects] = useState([{ title: '', description: '' }])
+  const [projects, setProjects] = useState([])
 
-  // ✅ Fetch resume from backend if context is empty
+  // ✅ Fetch resume if context is empty
   useEffect(() => {
     const fetchResume = async () => {
       if (!resumeId) return
@@ -26,7 +25,7 @@ function Projects() {
         if (!res.ok) throw new Error('Failed to fetch resume data')
         const data = await res.json()
         setResumeInfo(data)
-        setProjects(data.projects || [{ title: '', description: '' }])
+        setProjects(data.projects || [])
       } catch (error) {
         console.error('Failed to fetch resume info:', error)
         toast.error('Could not load resume projects')
@@ -35,24 +34,41 @@ function Projects() {
 
     if (!resumeInfo || Object.keys(resumeInfo).length === 0) {
       fetchResume()
-    } else if (resumeInfo.projects) {
-      setProjects(resumeInfo.projects)
+    } else {
+      setProjects(resumeInfo.projects || [])
     }
   }, [resumeId, resumeInfo, setResumeInfo])
 
-  // ✅ Real-time sync with context for live preview
+  // ✅ Context sync helper
+  const syncToContext = (newList) => {
+    setProjects(newList)
+    setResumeInfo((prev) => ({
+      ...prev,
+      projects: newList,
+    }))
+  }
+
+  // ✅ Input change handler
   const handleChange = (e, index) => {
     const { name, value } = e.target
     const updated = [...projects]
     updated[index] = { ...updated[index], [name]: value }
-    setProjects(updated)
-
-    setResumeInfo((prev) => ({
-      ...prev,
-      projects: updated,
-    }))
+    syncToContext(updated)
   }
 
+  const addNewProject = () => {
+    const updated = [...projects, { title: '', description: '' }]
+    syncToContext(updated)
+  }
+
+  const removeProject = () => {
+    if (projects.length > 0) {
+      const updated = projects.slice(0, -1)
+      syncToContext(updated)
+    }
+  }
+
+  // ✅ Save handler
   const onSave = async () => {
     if (!resumeId) {
       toast.error('Resume ID not found')
@@ -62,18 +78,18 @@ function Projects() {
     setLoading(true)
 
     try {
-      const cleanProjects = projects.map(({ _id, ...rest }) => rest)
+      const cleanedProjects = projects.map(({ id, _id, ...rest }) => rest)
 
       const res = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projects: cleanProjects }),
+        body: JSON.stringify({ projects: cleanedProjects }),
       })
 
       if (!res.ok) throw new Error()
 
-      setResumeInfo((prev) => ({ ...prev, projects: cleanProjects }))
-      toast.success('Projects updated!')
+      setResumeInfo((prev) => ({ ...prev, projects: cleanedProjects }))
+      toast.success('Projects updated Succesfully!')
     } catch (error) {
       console.error(error)
       toast.error('Failed to update projects')
@@ -110,33 +126,19 @@ function Projects() {
 
       <div className="flex justify-between">
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() =>
-              setProjects((prev) => {
-                const updated = [...prev, { title: '', description: '' }]
-                setResumeInfo((ctx) => ({ ...ctx, projects: updated }))
-                return updated
-              })
-            }
-          >
+          <Button variant="outline" onClick={addNewProject}>
             + Add More Projects
           </Button>
           <Button
             variant="outline"
-            onClick={() =>
-              setProjects((prev) => {
-                const updated = prev.length > 1 ? prev.slice(0, -1) : prev
-                setResumeInfo((ctx) => ({ ...ctx, projects: updated }))
-                return updated
-              })
-            }
+            onClick={removeProject}
+            disabled={projects.length === 0}
           >
             - Remove
           </Button>
         </div>
         <Button disabled={loading} onClick={onSave}>
-          {loading ? <LoaderCircle className="animate-spin" /> : 'Save'}
+          {loading ? <LoaderCircle className="animate-spin w-4 h-4" /> : 'Save'}
         </Button>
       </div>
     </div>

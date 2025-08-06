@@ -38,39 +38,40 @@ function Summary({ enabledNext }) {
     }
   }, [resumeId, resumeInfo, setResumeInfo])
 
-  const handleSave = async () => {
-    if (!resumeId) {
-      toast.error('Resume ID not found.')
-      return
-    }
-
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/resumes/${resumeId}`, {
-        method: 'PATCH', 
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ data: { summary } }), // ✅ matches backend structure
-      })
-
-      if (!res.ok) throw new Error()
-
-      toast.success('Summary updated successfully!')
-
-      // Update context after successful save
-      setResumeInfo((prev) => ({
-        ...prev,
-        summary,
-      }))
-
-      enabledNext?.(true)
-    } catch (error) {
-      toast.error('Failed to update summary.')
-    } finally {
-      setLoading(false)
-    }
+const handleSave = async () => {
+  if (!resumeId) {
+    toast.error('Resume ID not found.')
+    return
   }
+
+  setLoading(true)
+  try {
+    const res = await fetch(`/api/resumes/${resumeId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ summary }), // ✅ FIXED: no "data" wrapper
+    })
+
+    if (!res.ok) throw new Error()
+
+    toast.success('Summary updated successfully!')
+
+    // Update context after successful save
+    setResumeInfo((prev) => ({
+      ...prev,
+      summary,
+    }))
+
+    enabledNext?.(true)
+  } catch (error) {
+    toast.error('Failed to update summary.')
+  } finally {
+    setLoading(false)
+  }
+}
+
 
   return (
     <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
