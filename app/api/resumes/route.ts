@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(resumes);
   } catch (error) {
+    console.error(error) 
     return NextResponse.json({ error: 'Failed to fetch resumes' }, { status: 500 });
   }
 }
@@ -31,6 +32,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(newResume, { status: 201 });
   } catch (error) {
+    console.error(error) 
     return NextResponse.json({ error: 'Failed to create resume' }, { status: 500 });
   }
 }
