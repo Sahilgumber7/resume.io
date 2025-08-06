@@ -18,10 +18,8 @@ function Skills({ enabledNext }) {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
   const [loading, setLoading] = useState(false)
 
-  // Sync local list with context
   const [skillsList, setSkillsList] = useState([{ name: '', rating: 0 }])
 
-  // Fetch resume initially if not loaded
   useEffect(() => {
     const fetchResume = async () => {
       if (!resumeId) return
@@ -48,8 +46,11 @@ function Skills({ enabledNext }) {
     }
   }, [resumeId, resumeInfo, setResumeInfo])
 
+  // ✅ Defensive check for enabledNext
   useEffect(() => {
-    enabledNext(false)
+    if (typeof enabledNext === 'function') {
+      enabledNext(false)
+    }
   }, [enabledNext])
 
   const handleChange = (index, name, value) => {
@@ -71,19 +72,22 @@ function Skills({ enabledNext }) {
 
     setLoading(true)
     try {
+      const cleanedSkills = skillsList.map(({ id, ...rest }) => rest)
+
       const res = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          data: {
-            skills: skillsList.map(({ id, ...rest }) => rest),
-          },
-        }),
+        body: JSON.stringify({ skills: cleanedSkills }),
       })
 
       if (!res.ok) throw new Error()
+
       toast.success('Skills updated successfully!')
-      enabledNext(true)
+
+      // ✅ Defensive check here too
+      if (typeof enabledNext === 'function') {
+        enabledNext(true)
+      }
     } catch (err) {
       console.error('Failed to update skills:', err)
       toast.error('Failed to update skills.')

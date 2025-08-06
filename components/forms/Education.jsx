@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -10,22 +11,15 @@ import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 import { toast } from 'sonner'
 import { useResumeInfo } from '@/components/ResumeInfoContext'
 
-export default function Education() {
-  const { resumeInfo, setResumeInfo } = useResumeInfo()
-  const [loading, setLoading] = useState(false)
-  const searchParams = useSearchParams()
-  const resumeId = searchParams.get('resumeId')
+function Education() {
+  const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
 
-  const [educationalList, setEducationalList] = useState([
-    {
-      universityName: '',
-      degree: '',
-      major: '',
-      startDate: '',
-      endDate: '',
-      description: ''
-    }
-  ])
+const params = useParams()
+const resumeId = params.resumeId
+
+
+  const [educationalList, setEducationalList] = useState([])
+  const [loading, setLoading] = useState(false)
 
   // ✅ Fetch resume if context is empty
   useEffect(() => {
@@ -36,16 +30,7 @@ export default function Education() {
         if (!res.ok) throw new Error('Failed to fetch resume data')
         const data = await res.json()
         setResumeInfo(data)
-        setEducationalList(data.education || [
-          {
-            universityName: '',
-            degree: '',
-            major: '',
-            startDate: '',
-            endDate: '',
-            description: ''
-          }
-        ])
+        setEducationalList(data.education || [])
       } catch (error) {
         console.error('Failed to fetch resume info:', error)
         toast.error('Could not load education info')
@@ -54,24 +39,29 @@ export default function Education() {
 
     if (!resumeInfo || Object.keys(resumeInfo).length === 0) {
       fetchResume()
-    } else if (resumeInfo.education) {
-      setEducationalList(resumeInfo.education)
+    } else {
+      setEducationalList(resumeInfo.education || [])
     }
   }, [resumeId, resumeInfo, setResumeInfo])
 
-  // ✅ Real-time context update
-  const handleChange = (event, index) => {
-    const { name, value } = event.target
-    const updated = [...educationalList]
-    updated[index] = { ...updated[index], [name]: value }
-    setEducationalList(updated)
-
-    setResumeInfo(prev => ({
+  // ✅ Sync helper
+  const syncToContext = (newList) => {
+    setEducationalList(newList)
+    setResumeInfo((prev) => ({
       ...prev,
-      education: updated
+      education: newList,
     }))
   }
 
+  // ✅ Input change
+  const handleChange = (e, index) => {
+    const { name, value } = e.target
+    const updated = [...educationalList]
+    updated[index] = { ...updated[index], [name]: value }
+    syncToContext(updated)
+  }
+
+  // ✅ Add & Remove
   const addNewEducation = () => {
     const updated = [
       ...educationalList,
@@ -81,27 +71,20 @@ export default function Education() {
         major: '',
         startDate: '',
         endDate: '',
-        description: ''
-      }
+        description: '',
+      },
     ]
-    setEducationalList(updated)
-    setResumeInfo(prev => ({
-      ...prev,
-      education: updated
-    }))
+    syncToContext(updated)
   }
 
   const removeEducation = () => {
-    if (educationalList.length > 1) {
+    if (educationalList.length > 0) {
       const updated = educationalList.slice(0, -1)
-      setEducationalList(updated)
-      setResumeInfo(prev => ({
-        ...prev,
-        education: updated
-      }))
+      syncToContext(updated)
     }
   }
 
+  // ✅ Save handler
   const onSave = async () => {
     if (!resumeId) {
       toast.error('Resume ID not found in URL!')
@@ -109,23 +92,23 @@ export default function Education() {
     }
 
     setLoading(true)
-
     try {
       const cleanedEducation = educationalList.map(({ id, _id, ...rest }) => rest)
 
       const response = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          education: cleanedEducation
-        })
+        body: JSON.stringify({ education: cleanedEducation }),
       })
 
       if (!response.ok) throw new Error('Failed to update education')
 
-      setResumeInfo(prev => ({ ...prev, education: cleanedEducation }))
+      setResumeInfo((prev) => ({
+        ...prev,
+        education: cleanedEducation,
+      }))
       toast.success('Education details updated!')
     } catch (error) {
       console.error(error)
@@ -205,7 +188,7 @@ export default function Education() {
           <Button
             variant="outline"
             onClick={removeEducation}
-            disabled={educationalList.length <= 1}
+            disabled={educationalList.length === 0}
           >
             - Remove
           </Button>

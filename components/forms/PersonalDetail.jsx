@@ -66,41 +66,37 @@ export default function PersonalDetail({ enabledNext }) {
     }))
   }
 
-  const onSave = async (e) => {
-    e.preventDefault()
+const onSave = async (e) => {
+  e.preventDefault()
 
-    if (!resumeId) {
-      toast.error('Resume ID is missing from the URL')
-      return
-    }
-
-    setLoading(true)
-
-    if (!resumeId) {
-      toast.error('Missing resume ID')
-      return
-    }
-
-    try {
-      const response = await fetch(`/api/resumes/${resumeId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ basicInfo: formData })
-      })
-
-      if (!response.ok) throw new Error('Failed to update')
-
-      enabledNext(true)
-      toast.success('Details updated successfully!')
-    } catch (error) {
-      console.error('Failed to update resume:', error)
-      toast.error('Failed to save changes')
-    } finally {
-      setLoading(false)
-    }
+  if (!resumeId) {
+    toast.error('Resume ID is missing from the URL')
+    return
   }
+
+  setLoading(true)
+
+  try {
+    const response = await fetch(`/api/resumes/${resumeId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData) // ✅ FIXED
+    })
+
+    if (!response.ok) throw new Error('Failed to update')
+
+    enabledNext(true)
+    toast.success('Details updated successfully!')
+  } catch (error) {
+    console.error('Failed to update resume:', error)
+    toast.error('Failed to save changes')
+  } finally {
+    setLoading(false)
+  }
+}
+
 
   return (
     <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">

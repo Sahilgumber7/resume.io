@@ -69,7 +69,7 @@ export async function PUT(
   }
 }
 
-// PATCH /api/resumes/:resumeId - Partially update resume
+// PATCH /api/resumes/:resumesId - Partially update resume
 export async function PATCH(
   req: NextRequest,
   context: { params: { resumeId: string } }
@@ -80,15 +80,14 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data } = await req.json()
+    const body = await req.json() // ✅ Fix here
     await connectDB()
 
-    // The params object must be awaited before accessing its properties.
     const { resumeId } = await context.params
 
     const updatedResume = await Resume.findOneAndUpdate(
       { _id: resumeId, userClerkId: userId },
-      { $set: data },
+      { $set: body }, // ✅ Use the full body here
       { new: true }
     )
 
@@ -101,6 +100,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'Failed to update resume' }, { status: 500 })
   }
 }
+
 
 // DELETE /api/resumes/:resumeId - Delete resume
 export async function DELETE(
