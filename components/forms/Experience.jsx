@@ -9,7 +9,7 @@ import { toast } from 'sonner'
 import RichTextEditor from '../RichTextEditor'
 import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 
-function Experience() {
+export default function Experience() {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
   const [experienceList, setExperienceList] = useState([])
   const [loading, setLoading] = useState(false)

@@ -9,9 +9,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { LoaderCircle } from 'lucide-react'
 import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 import { toast } from 'sonner'
-import { useResumeInfo } from '@/components/ResumeInfoContext'
 
-function Education() {
+
+export default function Education() {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
 
 const params = useParams()

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import FormSection from '@/components/FormSection'
 import ResumePreview from '@/components/ResumePreview'
@@ -10,7 +10,7 @@ import { ResumeInfoContext } from '../../../../../components/ResumeInfoContext'
 export default function EditResumePage() {
   const params = useParams()
   const resumeId = params?.resumeId
-  const { resumeInfo, setResumeInfo } = useResumeInfo()
+  const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
