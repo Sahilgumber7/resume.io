@@ -6,20 +6,19 @@ if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable')
 }
 
-// Define the shape of the cached object
 interface MongooseGlobal {
   conn: typeof mongoose | null
   promise: Promise<typeof mongoose> | null
 }
 
-// Use Node.js globalThis with custom type
 declare global {
-  // Allow modification of `global` to store mongoose connection
+  // Must be var here for global scope merging
+  // eslint-disable-next-line no-var
   var mongoose: MongooseGlobal | undefined
 }
 
-// Initialize global.mongoose if not already set
-const cached = global.mongoose ??= { conn: null, promise: null }
+const cached: MongooseGlobal = global.mongoose ?? { conn: null, promise: null }
+global.mongoose = cached
 
 export async function connectDB(): Promise<typeof mongoose> {
   if (cached.conn) return cached.conn
