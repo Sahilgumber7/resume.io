@@ -6,7 +6,7 @@ import { connectDB } from '@/lib/db'; // You must have a db connection util
 
 // GET /api/resumes - Get all resumes for the current user
 export async function GET(
-  _req: NextRequest, 
+  req: NextRequest, 
 ) {
   try {
     const { userId } = await auth();
