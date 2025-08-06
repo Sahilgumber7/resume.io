@@ -7,25 +7,30 @@ import EducationalPreview from './preview/EducationalPreview'
 import SkillsPreview from './preview/SkillsPreview'
 import ProjectPreview from './preview/ProjectPreview'
 
-function ResumePreview({ resumeInfo }) {
+function ResumePreview() {
+  const { resumeInfo } = useContext(ResumeInfoContext)
+
+  if (!resumeInfo) return null // Or show a loading state
+
   return (
-    <div className='shadow-lg h-full p-14 border-t-[20px]'
-    style={{
-        borderColor:resumeInfo?.themeColor
-    }}>
-        {/* Personal Detail  */}
-            <PersonalDetailPreview resumeInfo={resumeInfo} />
-        {/* summary  */}
-            <SummaryPreview resumeInfo={resumeInfo} />
-        {/* Educational  */}
-        {resumeInfo?.education?.length>0&&   <EducationalPreview resumeInfo={resumeInfo} />}
-        {/* Professional Experience  */}
-        {resumeInfo?.experience?.length>0&& <ExperiencePreview resumeInfo={resumeInfo} />}
-        {/* Projects  */}
-        {resumeInfo?.projects?.length>0&& <ProjectPreview resumeInfo={resumeInfo} />}
-        {/* Skills  */}
-        {resumeInfo?.skills?.length>0&&    <SkillsPreview resumeInfo={resumeInfo}/>}
-        
+    <div
+      className='shadow-lg h-full p-14 border-t-[20px]'
+      style={{ borderColor: resumeInfo?.themeColor }}
+    >
+      <PersonalDetailPreview resumeInfo={resumeInfo} />
+      <SummaryPreview resumeInfo={resumeInfo} />
+      {resumeInfo?.education?.length > 0 && (
+        <EducationalPreview resumeInfo={resumeInfo} />
+      )}
+      {resumeInfo?.experience?.length > 0 && (
+        <ExperiencePreview resumeInfo={resumeInfo} />
+      )}
+      {resumeInfo?.projects?.length > 0 && (
+        <ProjectPreview resumeInfo={resumeInfo} />
+      )}
+      {resumeInfo?.skills?.length > 0 && (
+        <SkillsPreview resumeInfo={resumeInfo} />
+      )}
     </div>
   )
 }
