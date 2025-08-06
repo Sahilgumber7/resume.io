@@ -7,7 +7,6 @@ import Resume from '@/models/resume'
 
 // GET /api/resumes/:resumeId - Get a specific resume
 export async function GET(
-  req: NextRequest,
   context: { params: { resumeId: string } }
 ) {
   try {
@@ -107,7 +106,6 @@ export async function PATCH(
 
 // DELETE /api/resumes/:resumeId - Delete resume
 export async function DELETE(
-  req: NextRequest,
   context: { params: { resumeId: string } }
 ) {
   try {
