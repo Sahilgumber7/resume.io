@@ -1,10 +1,16 @@
-// app/api/resumes/[resumeId]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { connectDB } from '@/lib/db'
 import Resume from '@/models/resume'
 
-// GET /api/resumes/:resumeId - Get a specific resume
+// Utility to extract resumeId from URL
+function extractResumeId(req: NextRequest) {
+  const url = new URL(req.url)
+  const segments = url.pathname.split('/')
+  return segments[segments.length - 1]
+}
+
+// GET /api/resumes/:resumeId
 export async function GET(req: NextRequest) {
   try {
     const { userId } = await auth()
@@ -14,15 +20,9 @@ export async function GET(req: NextRequest) {
 
     await connectDB()
 
-    const url = new URL(req.url)
-    const pathSegments = url.pathname.split('/')
-    const resumeId = pathSegments[pathSegments.length - 1]
+    const resumeId = extractResumeId(req)
 
-    const resume = await Resume.findOne({
-      _id: resumeId,
-      userClerkId: userId,
-    })
-
+    const resume = await Resume.findOne({ _id: resumeId, userClerkId: userId })
     if (!resume) {
       return NextResponse.json({ error: 'Resume not found' }, { status: 404 })
     }
@@ -34,12 +34,8 @@ export async function GET(req: NextRequest) {
   }
 }
 
-
-// DELETE /api/resumes/:resumeId - Delete resume
-export async function DELETE(
-  _req: NextRequest, // The request object is the first argument
-  { params }: { params: { resumeId: string } } // Correct destructuring for dynamic params
-) {
+// DELETE /api/resumes/:resumeId
+export async function DELETE(req: NextRequest) {
   try {
     const { userId } = await auth()
     if (!userId) {
@@ -47,14 +43,9 @@ export async function DELETE(
     }
 
     await connectDB()
+    const resumeId = extractResumeId(req)
 
-    const { resumeId } = params // Access the destructured params
-
-    const deleted = await Resume.findOneAndDelete({
-      _id: resumeId,
-      userClerkId: userId,
-    })
-
+    const deleted = await Resume.findOneAndDelete({ _id: resumeId, userClerkId: userId })
     if (!deleted) {
       return NextResponse.json({ error: 'Resume not found' }, { status: 404 })
     }
@@ -66,12 +57,8 @@ export async function DELETE(
   }
 }
 
-
-// PUT /api/resumes/:resumeId - Replace the resume
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { resumeId: string } } // Correct destructuring for dynamic params
-) {
+// PUT /api/resumes/:resumeId
+export async function PUT(req: NextRequest) {
   try {
     const { userId } = await auth()
     if (!userId) {
@@ -80,8 +67,7 @@ export async function PUT(
 
     const data = await req.json()
     await connectDB()
-
-    const { resumeId } = params // Access the destructured params
+    const resumeId = extractResumeId(req)
 
     const updated = await Resume.findOneAndUpdate(
       { _id: resumeId, userClerkId: userId },
@@ -95,16 +81,13 @@ export async function PUT(
 
     return NextResponse.json(updated)
   } catch (error) {
-    console.error(error) 
+    console.error(error)
     return NextResponse.json({ error: 'Failed to update resume' }, { status: 500 })
   }
 }
 
-// PATCH /api/resumes/:resumesId - Partially update resume
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { resumeId: string } } // Correct destructuring for dynamic params
-) {
+// PATCH /api/resumes/:resumeId
+export async function PATCH(req: NextRequest) {
   try {
     const { userId } = await auth()
     if (!userId) {
@@ -113,8 +96,7 @@ export async function PATCH(
 
     const body = await req.json()
     await connectDB()
-
-    const { resumeId } = params // Access the destructured params
+    const resumeId = extractResumeId(req)
 
     const updatedResume = await Resume.findOneAndUpdate(
       { _id: resumeId, userClerkId: userId },
@@ -128,7 +110,7 @@ export async function PATCH(
 
     return NextResponse.json(updatedResume)
   } catch (error) {
-    console.error(error) 
+    console.error(error)
     return NextResponse.json({ error: 'Failed to update resume' }, { status: 500 })
   }
 }
