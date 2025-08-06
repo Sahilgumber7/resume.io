@@ -5,7 +5,6 @@ import { Toaster } from 'sonner'
 import { ThemeProvider } from 'next-themes'
 import { ClerkProvider } from '@clerk/nextjs'
 import SyncUser from '@/components/SyncUser'
-import { ResumeInfoProvider } from '@/components/ResumeInfoContext'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

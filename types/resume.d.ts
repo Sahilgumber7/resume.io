@@ -1,5 +1,5 @@
 export interface ResumeData {
-  name: string
+  fullName: string
   email: string
   phone: string
   location: string
