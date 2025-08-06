@@ -5,9 +5,8 @@ import Resume from '@/models/resume';
 import { connectDB } from '@/lib/db'; // You must have a db connection util
 
 // GET /api/resumes - Get all resumes for the current user
-export async function GET(
-  _ : NextRequest, 
-) {
+export async function GET() 
+ {
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
