@@ -140,60 +140,62 @@ export default function Education() {
       <h2 className="font-bold text-lg">Education</h2>
       <p>Add your educational details</p>
 
-      {educationalList.map((item, index) => (
-        <div key={index} className="grid grid-cols-2 gap-3 border p-3 my-5 rounded-lg">
-          <div className="col-span-2">
-            <label>University Name</label>
-            <Input
-              name="universityName"
-              value={item.universityName}
-              onChange={(e) => handleChange(e, index)}
-            />
+      <div>
+        {educationalList.map((item, index) => (
+          <div key={index} className='grid grid-cols-2 gap-3 border p-3 my-5 rounded-lg'>
+            <div className='col-span-2'>
+              <label>University Name</label>
+              <Input
+                name='universityName'
+                onChange={e => handleChange(e, index)}
+                value={item.universityName}
+              />
+            </div>
+            <div>
+              <label>Degree</label>
+              <Input
+                name='degree'
+                onChange={e => handleChange(e, index)}
+                value={item.degree}
+              />
+            </div>
+            <div>
+              <label>Major</label>
+              <Input
+                name='major'
+                onChange={e => handleChange(e, index)}
+                value={item.major}
+              />
+            </div>
+            <div>
+              <label>Start Date</label>
+              <Input
+                type='date'
+                name='startDate'
+                onChange={e => handleChange(e, index)}
+                value={item.startDate}
+              />
+            </div>
+            <div>
+              <label>End Date</label>
+              <Input
+                type='date'
+                name='endDate'
+                onChange={e => handleChange(e, index)}
+                value={item.endDate}
+              />
+            </div>
+            <div className='col-span-2'>
+              <label>Description</label>
+              <Textarea
+                name='description'
+                onChange={e => handleChange(e, index)}
+                value={item.description}
+              />
+            </div>
           </div>
-          <div>
-            <label>Degree</label>
-            <Input
-              name="degree"
-              value={item.degree}
-              onChange={(e) => handleChange(e, index)}
-            />
-          </div>
-          <div>
-            <label>Major</label>
-            <Input
-              name="major"
-              value={item.major}
-              onChange={(e) => handleChange(e, index)}
-            />
-          </div>
-          <div>
-            <label>Start Date</label>
-            <Input
-              type="date"
-              name="startDate"
-              value={item.startDate}
-              onChange={(e) => handleChange(e, index)}
-            />
-          </div>
-          <div>
-            <label>End Date</label>
-            <Input
-              type="date"
-              name="endDate"
-              value={item.endDate}
-              onChange={(e) => handleChange(e, index)}
-            />
-          </div>
-          <div className="col-span-2">
-            <label>Description</label>
-            <Textarea
-              name="description"
-              value={item.description}
-              onChange={(e) => handleChange(e, index)}
-            />
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       <div className="flex justify-between">
         <div className="flex gap-2">

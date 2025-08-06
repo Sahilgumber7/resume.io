@@ -30,6 +30,7 @@ const ResumeSchema = new mongoose.Schema(
     },
     themeColor: {
       type: String,
+      default: "#000000",
     },
 
     summary: {
