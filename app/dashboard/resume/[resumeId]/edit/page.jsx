@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import FormSection from '@/components/FormSection'
 import ResumePreview from '@/components/ResumePreview'
 import { ResumeInfoContext } from '../../../../../components/ResumeInfoContext'
+import Lnavbar from '@/components/Lnavbar'
 
 
 export default function EditResumePage() {
@@ -26,12 +27,15 @@ export default function EditResumePage() {
 
   return (
     <ResumeInfoContext.Provider value={{ resumeInfo, setResumeInfo }}>
+      <div>
+        <Lnavbar />
       <div className="grid grid-cols-1 md:grid-cols-2 p-10 gap-10">
         {/* Form Section */}
         <FormSection />
 
         {/* Resume Preview */}
         <ResumePreview />
+      </div>
       </div>
     </ResumeInfoContext.Provider>
   )

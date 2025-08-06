@@ -4,6 +4,7 @@ import { useUser } from '@clerk/nextjs';
 import AddResume from '@/components/AddResume';
 import ResumeCardItem from '@/components/ResumeCardItem';
 import axios from 'axios';
+import Lnavbar from '@/components/Lnavbar';
 
 function Dashboard() {
   const { user } = useUser();
@@ -25,6 +26,7 @@ function Dashboard() {
 
   return (
     <div className='p-10 md:px-20 lg:px-32'>
+      <Lnavbar />
       <h2 className='font-bold text-3xl'>My Resume</h2>
       <p>Start creating AI resume for your next job role</p>
       <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 mt-10'>

@@ -14,9 +14,10 @@ function ResumePreview() {
 
   return (
     <div
-      className='shadow-lg h-full p-14 border-t-[20px]'
-      style={{ borderColor: resumeInfo?.themeColor }}
+    className="shadow-lg h-full p-14 border-t-[20px] bg-white text-black dark:bg-white dark:text-black"
+    style={{ borderColor: resumeInfo?.themeColor }}
     >
+
       <PersonalDetailPreview resumeInfo={resumeInfo} />
       <SummaryPreview resumeInfo={resumeInfo} />
       {resumeInfo?.education?.length > 0 && (
