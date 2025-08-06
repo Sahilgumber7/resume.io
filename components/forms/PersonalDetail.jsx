@@ -2,9 +2,10 @@
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 import { LoaderCircle } from 'lucide-react'
-import { useSearchParams } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import React, { useContext, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useResumeInfo } from '@/components/ResumeInfoContext'
 
@@ -19,23 +20,36 @@ export default function PersonalDetail({ enabledNext }) {
   })
   const [loading, setLoading] = useState(false)
 
-  const searchParams = useSearchParams()
-  const resumeId = searchParams.get('resumeId') || resumeInfo?._id
+  const { resumeId } = useParams()
+
+  // ✅ Fetch resume from backend if context is empty
+  useEffect(() => {
+    const fetchResume = async () => {
+      if (!resumeId) return
+      try {
+        const res = await fetch(`/api/resumes/${resumeId}`)
+        if (!res.ok) throw new Error('Failed to fetch resume data')
+        const data = await res.json()
+        setResumeInfo(data)
+        setFormData(data)
+      } catch (error) {
+        console.error('Failed to fetch resume info:', error)
+        toast.error('Could not load resume details')
+      }
+    }
+
+    if (!resumeInfo || Object.keys(resumeInfo).length === 0) {
+      fetchResume()
+    } else {
+      setFormData(resumeInfo)
+    }
+  }, [resumeId, resumeInfo, setResumeInfo])
 
   useEffect(() => {
-    if (resumeInfo?.basicInfo) {
-      setFormData({
-        firstName: resumeInfo.basicInfo.firstName || '',
-        lastName: resumeInfo.basicInfo.lastName || '',
-        email: resumeInfo.basicInfo.email || '',
-        phone: resumeInfo.basicInfo.phone || '',
-        address: resumeInfo.basicInfo.address || ''
-      })
-    }
-  }, [resumeInfo])
+    enabledNext(false)
+  }, [enabledNext])
 
   const handleInputChange = (e) => {
-    enabledNext(false)
     const { name, value } = e.target
 
     setFormData((prev) => ({
@@ -54,6 +68,12 @@ export default function PersonalDetail({ enabledNext }) {
 
   const onSave = async (e) => {
     e.preventDefault()
+
+    if (!resumeId) {
+      toast.error('Resume ID is missing from the URL')
+      return
+    }
+
     setLoading(true)
 
     if (!resumeId) {
@@ -62,18 +82,18 @@ export default function PersonalDetail({ enabledNext }) {
     }
 
     try {
-      const res = await fetch(`/api/resumes/${resumeId}`, {
-        method: 'PUT',
+      const response = await fetch(`/api/resumes/${resumeId}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ basicInfo: formData })
       })
 
-      if (!res.ok) throw new Error('Failed to update')
+      if (!response.ok) throw new Error('Failed to update')
 
       enabledNext(true)
-      toast.success('Details updated successfully')
+      toast.success('Details updated successfully!')
     } catch (error) {
       console.error('Failed to update resume:', error)
       toast.error('Failed to save changes')
@@ -90,20 +110,20 @@ export default function PersonalDetail({ enabledNext }) {
       <form onSubmit={onSave}>
         <div className="grid grid-cols-2 mt-5 gap-3">
           <div>
-            <label className="text-sm">First Name</label>
+            <label className="text-sm">Full Name</label>
             <Input
-              name="firstName"
+              name="fullName"
               required
-              value={formData.firstName}
+              value={formData.fullName || ''}
               onChange={handleInputChange}
             />
           </div>
-          <div>
-            <label className="text-sm">Last Name</label>
+          <div className="col-span-2">
+            <label className="text-sm">Job Title</label>
             <Input
-              name="lastName"
+              name="jobTitle"
               required
-              value={formData.lastName}
+              value={formData.jobTitle || ''}
               onChange={handleInputChange}
             />
           </div>
@@ -112,7 +132,7 @@ export default function PersonalDetail({ enabledNext }) {
             <Input
               name="address"
               required
-              value={formData.address}
+              value={formData.address || ''}
               onChange={handleInputChange}
             />
           </div>
@@ -121,7 +141,7 @@ export default function PersonalDetail({ enabledNext }) {
             <Input
               name="phone"
               required
-              value={formData.phone}
+              value={formData.phone || ''}
               onChange={handleInputChange}
             />
           </div>
@@ -130,7 +150,7 @@ export default function PersonalDetail({ enabledNext }) {
             <Input
               name="email"
               required
-              value={formData.email}
+              value={formData.email || ''}
               onChange={handleInputChange}
             />
           </div>

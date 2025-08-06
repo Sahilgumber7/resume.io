@@ -4,8 +4,8 @@ import React, { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import FormSection from '@/components/FormSection'
 import ResumePreview from '@/components/ResumePreview'
-import { Loader2 } from 'lucide-react'
-import { useResumeInfo } from '@/components/ResumeInfoContext'
+import { ResumeInfoContext } from '../../../../../components/ResumeInfoContext'
+
 
 export default function EditResumePage() {
   const params = useParams()

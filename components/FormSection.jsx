@@ -1,40 +1,42 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import PersonalDetail from './forms/PersonalDetail'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft, ArrowRight, Home } from 'lucide-react'
 import Summary from './forms/Summary'
 import Experience from './forms/Experience'
 import Education from './forms/Education'
 import Skills from './forms/Skills'
-import Link from 'next/link'
-import { useRouter, useParams } from 'next/navigation'
+import Projects from './forms/Project' // ✅ Corrected import
 import ThemeColor from './ThemeColor'
 
-export default function FormSection({ resumeInfo, setResumeInfo }) {
+import { Button } from '@/components/ui/button'
+import { ArrowLeft, ArrowRight, Home } from 'lucide-react'
+import Link from 'next/link'
+import { useParams, useRouter } from 'next/navigation'
+
+function FormSection() {
   const [activeFormIndex, setActiveFormIndex] = useState(1)
   const [enableNext, setEnableNext] = useState(true)
 
-  const { resumeId } = useParams()
+  const params = useParams()
   const router = useRouter()
+  const resumeId = params?.resumeId
 
-  const goToNext = () => {
-    if (activeFormIndex === 5) {
+  // ✅ Redirect to preview after step 6 (i.e., Projects)
+  useEffect(() => {
+    if (activeFormIndex === 7) {
       router.push(`/my-resume/${resumeId}/view`)
-    } else {
-      setActiveFormIndex(activeFormIndex + 1)
     }
-  }
+  }, [activeFormIndex, resumeId, router])
 
   return (
     <div>
-      {/* Header Controls */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex gap-5 items-center">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex gap-5">
           <Link href="/dashboard">
-            <Button variant="outline">
-              <Home className="w-4 h-4 mr-2" /> Dashboard
+            <Button>
+              <Home />
             </Button>
           </Link>
           <ThemeColor />
@@ -42,37 +44,38 @@ export default function FormSection({ resumeInfo, setResumeInfo }) {
 
         <div className="flex gap-2">
           {activeFormIndex > 1 && (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => setActiveFormIndex(activeFormIndex - 1)}
-            >
-              <ArrowLeft className="w-4 h-4" />
+            <Button size="sm" onClick={() => setActiveFormIndex((i) => i - 1)}>
+              <ArrowLeft />
             </Button>
           )}
           <Button
-            size="sm"
-            onClick={goToNext}
             disabled={!enableNext}
             className="flex gap-2"
+            size="sm"
+            onClick={() => setActiveFormIndex((i) => i + 1)}
           >
-            Next <ArrowRight className="w-4 h-4" />
+            Next
+            <ArrowRight />
           </Button>
         </div>
       </div>
 
-      {/* Form Sections */}
+      {/* Form Steps */}
       {activeFormIndex === 1 ? (
-        <PersonalDetail enabledNext={v => setEnableNext(v)} resumeInfo={resumeInfo} setResumeInfo={setResumeInfo} />
+        <PersonalDetail enabledNext={setEnableNext} />
       ) : activeFormIndex === 2 ? (
-        <Summary enabledNext={v => setEnableNext(v)} resumeInfo={resumeInfo} setResumeInfo={setResumeInfo} />
+        <Summary enabledNext={setEnableNext} />
       ) : activeFormIndex === 3 ? (
-        <Experience resumeInfo={resumeInfo} setResumeInfo={setResumeInfo} />
+        <Experience />
       ) : activeFormIndex === 4 ? (
-        <Education resumeInfo={resumeInfo} setResumeInfo={setResumeInfo} />
+        <Education />
       ) : activeFormIndex === 5 ? (
-        <Skills resumeInfo={resumeInfo} setResumeInfo={setResumeInfo} />
+        <Skills />
+      ) : activeFormIndex === 6 ? (
+        <Projects />
       ) : null}
     </div>
   )
 }
+
+export default FormSection
