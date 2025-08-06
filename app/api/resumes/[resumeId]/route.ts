@@ -5,10 +5,7 @@ import { connectDB } from '@/lib/db'
 import Resume from '@/models/resume'
 
 // GET /api/resumes/:resumeId - Get a specific resume
-export async function GET(
-  _req: NextRequest, // The request object is the first argument
-  { params }: { params: { resumeId: string } } // Correct destructuring for dynamic params
-) {
+export async function GET(req: NextRequest) {
   try {
     const { userId } = await auth()
     if (!userId) {
@@ -17,7 +14,9 @@ export async function GET(
 
     await connectDB()
 
-    const { resumeId } = params // Access the destructured params
+    const url = new URL(req.url)
+    const pathSegments = url.pathname.split('/')
+    const resumeId = pathSegments[pathSegments.length - 1]
 
     const resume = await Resume.findOne({
       _id: resumeId,
@@ -34,6 +33,7 @@ export async function GET(
     return NextResponse.json({ error: 'Failed to fetch resume' }, { status: 500 })
   }
 }
+
 
 // DELETE /api/resumes/:resumeId - Delete resume
 export async function DELETE(
