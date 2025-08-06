@@ -1,4 +1,3 @@
-
 // app/api/resumes/[resumeId]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
@@ -7,8 +6,8 @@ import Resume from '@/models/resume'
 
 // GET /api/resumes/:resumeId - Get a specific resume
 export async function GET(
-  _req: NextRequest, // <- underscore to indicate unused
-  context: { params: { resumeId: string } }
+  _req: NextRequest, // The request object is the first argument
+  { params }: { params: { resumeId: string } } // Correct destructuring for dynamic params
 ) {
   try {
     const { userId } = await auth()
@@ -18,7 +17,7 @@ export async function GET(
 
     await connectDB()
 
-    const { resumeId } = await context.params
+    const { resumeId } = params // Access the destructured params
 
     const resume = await Resume.findOne({
       _id: resumeId,
@@ -38,8 +37,8 @@ export async function GET(
 
 // DELETE /api/resumes/:resumeId - Delete resume
 export async function DELETE(
-  _req: NextRequest, // <- still required
-  context: { params: { resumeId: string } }
+  _req: NextRequest, // The request object is the first argument
+  { params }: { params: { resumeId: string } } // Correct destructuring for dynamic params
 ) {
   try {
     const { userId } = await auth()
@@ -49,7 +48,7 @@ export async function DELETE(
 
     await connectDB()
 
-    const { resumeId } = await context.params
+    const { resumeId } = params // Access the destructured params
 
     const deleted = await Resume.findOneAndDelete({
       _id: resumeId,
@@ -71,7 +70,7 @@ export async function DELETE(
 // PUT /api/resumes/:resumeId - Replace the resume
 export async function PUT(
   req: NextRequest,
-  context: { params: { resumeId: string } }
+  { params }: { params: { resumeId: string } } // Correct destructuring for dynamic params
 ) {
   try {
     const { userId } = await auth()
@@ -79,11 +78,10 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data } = await req.json()
+    const data = await req.json()
     await connectDB()
 
-    // The params object must be awaited before accessing its properties.
-    const { resumeId } = await context.params
+    const { resumeId } = params // Access the destructured params
 
     const updated = await Resume.findOneAndUpdate(
       { _id: resumeId, userClerkId: userId },
@@ -105,7 +103,7 @@ export async function PUT(
 // PATCH /api/resumes/:resumesId - Partially update resume
 export async function PATCH(
   req: NextRequest,
-  context: { params: { resumeId: string } }
+  { params }: { params: { resumeId: string } } // Correct destructuring for dynamic params
 ) {
   try {
     const { userId } = await auth()
@@ -113,14 +111,14 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await req.json() // ✅ Fix here
+    const body = await req.json()
     await connectDB()
 
-    const { resumeId } = await context.params
+    const { resumeId } = params // Access the destructured params
 
     const updatedResume = await Resume.findOneAndUpdate(
       { _id: resumeId, userClerkId: userId },
-      { $set: body }, // ✅ Use the full body here
+      { $set: body },
       { new: true }
     )
 
@@ -134,5 +132,3 @@ export async function PATCH(
     return NextResponse.json({ error: 'Failed to update resume' }, { status: 500 })
   }
 }
-
-
