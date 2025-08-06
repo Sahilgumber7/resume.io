@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 
 
 export default function PersonalDetail({ enabledNext }) {
-  const { resumeInfo, setResumeInfo } = useResumeInfo(ResumeInfoContext)
+  const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
