@@ -8,12 +8,11 @@ import { useParams } from 'next/navigation'
 import React, { useContext, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
-
 export default function PersonalDetail({ enabledNext }) {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    fullName: '',
+    jobTitle: '',
     email: '',
     phone: '',
     address: ''
@@ -30,8 +29,15 @@ export default function PersonalDetail({ enabledNext }) {
         const res = await fetch(`/api/resumes/${resumeId}`)
         if (!res.ok) throw new Error('Failed to fetch resume data')
         const data = await res.json()
+
         setResumeInfo(data)
-        setFormData(data)
+        setFormData({
+          fullName: data.fullName || '',
+          jobTitle: data.jobTitle || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          address: data.address || ''
+        })
       } catch (error) {
         console.error('Failed to fetch resume info:', error)
         toast.error('Could not load resume details')
@@ -40,63 +46,68 @@ export default function PersonalDetail({ enabledNext }) {
 
     if (!resumeInfo || Object.keys(resumeInfo).length === 0) {
       fetchResume()
-    } else {
-      setFormData(resumeInfo)
+    } else if (!formData.fullName) {
+      // ✅ Merge from context only once
+      setFormData({
+        fullName: resumeInfo.fullName || '',
+        jobTitle: resumeInfo.jobTitle || '',
+        email: resumeInfo.email || '',
+        phone: resumeInfo.phone || '',
+        address: resumeInfo.address || ''
+      })
     }
-  }, [resumeId, resumeInfo, setResumeInfo])
+  }, [resumeId]) // removed resumeInfo from deps
 
   useEffect(() => {
-    enabledNext(false)
+    enabledNext(false) // disable next until save
   }, [enabledNext])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
 
-    setFormData((prev) => ({
+    // Local state
+    setFormData(prev => ({
       ...prev,
       [name]: value
     }))
 
-    setResumeInfo((prev) => ({
+    // Context state (flat structure)
+    setResumeInfo(prev => ({
       ...prev,
-      basicInfo: {
-        ...prev.basicInfo,
-        [name]: value
-      }
+      [name]: value
     }))
+
+    enabledNext(false)
   }
 
-const onSave = async (e) => {
-  e.preventDefault()
+  const onSave = async (e) => {
+    e.preventDefault()
 
-  if (!resumeId) {
-    toast.error('Resume ID is missing from the URL')
-    return
+    if (!resumeId) {
+      toast.error('Resume ID is missing from the URL')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const response = await fetch(`/api/resumes/${resumeId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData) // ✅ matches DB schema
+      })
+
+      if (!response.ok) throw new Error('Failed to update')
+
+      enabledNext(true)
+      toast.success('Details updated successfully!')
+    } catch (error) {
+      console.error('Failed to update resume:', error)
+      toast.error('Failed to save changes')
+    } finally {
+      setLoading(false)
+    }
   }
-
-  setLoading(true)
-
-  try {
-    const response = await fetch(`/api/resumes/${resumeId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(formData) // ✅ FIXED
-    })
-
-    if (!response.ok) throw new Error('Failed to update')
-
-    enabledNext(true)
-    toast.success('Details updated successfully!')
-  } catch (error) {
-    console.error('Failed to update resume:', error)
-    toast.error('Failed to save changes')
-  } finally {
-    setLoading(false)
-  }
-}
-
 
   return (
     <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
@@ -110,7 +121,7 @@ const onSave = async (e) => {
             <Input
               name="fullName"
               required
-              value={formData.fullName || ''}
+              value={formData.fullName}
               onChange={handleInputChange}
             />
           </div>
@@ -119,7 +130,7 @@ const onSave = async (e) => {
             <Input
               name="jobTitle"
               required
-              value={formData.jobTitle || ''}
+              value={formData.jobTitle}
               onChange={handleInputChange}
             />
           </div>
@@ -128,7 +139,7 @@ const onSave = async (e) => {
             <Input
               name="address"
               required
-              value={formData.address || ''}
+              value={formData.address}
               onChange={handleInputChange}
             />
           </div>
@@ -137,7 +148,7 @@ const onSave = async (e) => {
             <Input
               name="phone"
               required
-              value={formData.phone || ''}
+              value={formData.phone}
               onChange={handleInputChange}
             />
           </div>
@@ -146,7 +157,7 @@ const onSave = async (e) => {
             <Input
               name="email"
               required
-              value={formData.email || ''}
+              value={formData.email}
               onChange={handleInputChange}
             />
           </div>
