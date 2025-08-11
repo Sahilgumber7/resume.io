@@ -24,25 +24,15 @@ export default function Lnavbar() {
   const [resumeTitle, setResumeTitle] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleBuilderClick = () => {
-    if (isSignedIn) {
-      // Signed-in users can directly go to builder creation
-      setOpenDialog(true);
-    } else {
-      // Guests also get the dialog, but will create guest resumes
-      setOpenDialog(true);
-    }
-  };
+  const handleBuilderClick = () => setOpenDialog(true);
 
   const onCreate = async () => {
     if (!resumeTitle) return;
     setLoading(true);
 
-    const uuid = uuidv4();
-
     const data = {
       title: resumeTitle,
-      userClerkId: isSignedIn ? user.id : 'guest', // guest user id
+      userClerkId: isSignedIn ? user.id : 'guest',
       fullName: isSignedIn ? user.fullName || '' : '',
       jobTitle: '',
       email: isSignedIn ? user.primaryEmailAddress?.emailAddress || '' : '',
@@ -59,9 +49,7 @@ export default function Lnavbar() {
     try {
       const res = await fetch('/api/resumes', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
 
@@ -81,21 +69,21 @@ export default function Lnavbar() {
   };
 
   return (
-    <nav className="w-full flex items-center justify-between px-6 md:px-10 py-4 shadow-sm bg-white dark:bg-zinc-900 sticky top-0 z-50">
-      <div className="text-2xl font-bold text-primary tracking-tight">
+    <nav className="w-full flex items-center justify-between px-4 md:px-10 py-3 shadow-sm bg-white dark:bg-zinc-900 sticky top-0 z-50">
+      {/* Logo */}
+      <div className="text-lg md:text-2xl font-bold text-primary tracking-tight">
         resume<span className="text-muted-foreground">.io</span>
       </div>
 
-      <div className="flex flex-row items-center gap-4">
-        {/* Builder Button - opens dialog */}
-        <Button variant="ghost" size="sm" onClick={handleBuilderClick}>
+      {/* Actions */}
+      <div className="flex flex-row items-center gap-2 md:gap-4 text-sm md:text-base">
+        <Button variant="ghost" size="sm" className="px-2 md:px-3" onClick={handleBuilderClick}>
           Builder
         </Button>
 
-        {/* Only visible when signed in */}
         <SignedIn>
           <Link href="/dashboard">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="px-2 md:px-3">
               Dashboard
             </Button>
           </Link>
@@ -103,10 +91,9 @@ export default function Lnavbar() {
 
         <ThemeToggle />
 
-        {/* Sign In or User Profile */}
         <SignedOut>
           <SignInButton mode="modal">
-            <Button size="sm">Sign In</Button>
+            <Button size="sm" className="px-2 md:px-3">Sign In</Button>
           </SignInButton>
         </SignedOut>
 
@@ -115,7 +102,7 @@ export default function Lnavbar() {
         </SignedIn>
       </div>
 
-      {/* Dialog for resume title */}
+      {/* Dialog */}
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent>
           <DialogHeader>
