@@ -15,6 +15,11 @@ export default function Lnavbar() {
 
       <div className="flex flex-row items-center gap-4">
         {/* Always visible - public route */}
+        <Link href="/parser">
+        <Button variant="ghost" size="sm">
+            Parser
+          </Button>
+        </Link>
         <Link href="/builder">
           <Button variant="ghost" size="sm">
             Builder
