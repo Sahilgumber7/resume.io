@@ -13,13 +13,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 export default function Lnavbar() {
   const { user, isSignedIn } = useUser();
   const router = useRouter();
+
   const [openDialog, setOpenDialog] = useState(false);
   const [resumeTitle, setResumeTitle] = useState('');
   const [loading, setLoading] = useState(false);
@@ -70,12 +70,10 @@ export default function Lnavbar() {
 
   return (
     <nav className="w-full flex items-center justify-between px-4 md:px-10 py-3 shadow-sm bg-white dark:bg-zinc-900 sticky top-0 z-50">
-      {/* Logo */}
       <div className="text-lg md:text-2xl font-bold text-primary tracking-tight">
         resume<span className="text-muted-foreground">.io</span>
       </div>
 
-      {/* Actions */}
       <div className="flex flex-row items-center gap-2 md:gap-4 text-sm md:text-base">
         <Button variant="ghost" size="sm" className="px-2 md:px-3" onClick={handleBuilderClick}>
           Builder
@@ -102,7 +100,6 @@ export default function Lnavbar() {
         </SignedIn>
       </div>
 
-      {/* Dialog */}
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent>
           <DialogHeader>
@@ -116,7 +113,7 @@ export default function Lnavbar() {
                 onChange={(e) => setResumeTitle(e.target.value)}
               />
             </DialogDescription>
-            <div className='flex justify-end gap-5 mt-4'>
+            <div className="flex justify-end gap-5 mt-4">
               <Button onClick={() => setOpenDialog(false)} variant="ghost">Cancel</Button>
               <Button onClick={onCreate} disabled={!resumeTitle || loading}>
                 {loading ? "Creating..." : "Create"}
