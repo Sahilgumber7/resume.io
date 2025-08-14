@@ -21,13 +21,10 @@ function getUserIdentifier(userId: string | null, req: NextRequest) {
 // GET /api/resumes/:resumeId
 export async function GET(req: NextRequest) {
   try {
-    const { userId } = await auth();
     await connectDB();
-
     const resumeId = extractResumeId(req);
-    const query = getUserIdentifier(userId, req);
 
-    const resume = await Resume.findOne({ _id: resumeId, ...query });
+    const resume = await Resume.findById(resumeId);
     if (!resume) {
       return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
     }
@@ -38,6 +35,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch resume' }, { status: 500 });
   }
 }
+
 
 // DELETE /api/resumes/:resumeId
 export async function DELETE(req: NextRequest) {

@@ -2,16 +2,20 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import { useUser, SignInButton } from '@clerk/nextjs'
 import Lnavbar from '@/components/Lnavbar'
 import { Button } from '@/components/ui/button'
 import ResumePreview from '@/components/ResumePreview'
 import { ResumeInfoContext } from '@/components/ResumeInfoContext'
+import { toast } from 'sonner'
 
 export default function ViewResume() {
   const [resumeInfo, setResumeInfo] = useState(null)
   const params = useParams()
   const resumeId = params?.resumeId
+  const { user, isSignedIn } = useUser()
 
+  // Fetch resume info
   useEffect(() => {
     if (resumeId) {
       fetch(`/api/resumes/${resumeId}`)
@@ -42,6 +46,31 @@ export default function ViewResume() {
     }
   }
 
+  // Link resume to logged-in user
+  const linkResumeToUser = async () => {
+    try {
+      const res = await fetch(`/api/resumes/${resumeId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id }),
+      })
+      if (!res.ok) throw new Error('Failed to link resume')
+      toast.success('Resume saved to your account for future access!')
+    } catch (err) {
+      console.error(err)
+      toast.error('Could not save resume. Please try again!')
+    }
+  }
+
+  // If user just signed in and resume is not linked yet
+  useEffect(() => {
+    if (isSignedIn && resumeId && resumeInfo && !resumeInfo.userId) {
+      linkResumeToUser()
+    }
+  }, [isSignedIn, resumeId, resumeInfo])
+
   return (
     <ResumeInfoContext.Provider value={{ resumeInfo, setResumeInfo }}>
       <div id="no-print">
@@ -60,6 +89,20 @@ export default function ViewResume() {
             <Button onClick={handleDownload}>Download</Button>
             <Button onClick={handleShare}>Share</Button>
           </div>
+
+          {!isSignedIn && (
+            <div className="mt-6 flex flex-col items-center">
+              <p className="text-gray-500 text-sm mb-2">
+                Log in to save your resume for future access.
+              </p>
+              <SignInButton
+                mode="redirect"
+                redirectUrl={`/my-resume/${resumeId}/view`}
+              >
+                <Button>Log in to Save</Button>
+              </SignInButton>
+            </div>
+          )}
         </div>
       </div>
 
