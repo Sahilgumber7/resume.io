@@ -3,6 +3,29 @@ import mammoth from "mammoth";
 import { promises as fs } from "fs";
 import path from "path";
 
+function autoParseSections(text: string) {
+  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+  const sections: Record<string, string[]> = {};
+  let currentSection = "General";
+
+  for (const line of lines) {
+    const words = line.split(" ");
+    const isHeading =
+      words.length <= 4 &&
+      ((line === line.toUpperCase()) || /^[A-Z][a-z]+/.test(line)) &&
+      !line.match(/\d/) && !line.includes(",");
+
+    if (isHeading) {
+      currentSection = line.toUpperCase();
+      sections[currentSection] = [];
+    } else {
+      if (!sections[currentSection]) sections[currentSection] = [];
+      sections[currentSection].push(line);
+    }
+  }
+
+  return sections;
+}
 export async function POST(req: Request) {
   try {
     const parsedData = await req.formData();
@@ -38,20 +61,21 @@ export async function POST(req: Request) {
     }
 
     // extract email & phone
-    const email =
-      extractedText.match(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i)?.[0] ||
-      "";
-    const phone =
-      extractedText.match(/(\+?\d[\d -]{8,}\d)/)?.[0] || "";
-
+    // const email =
+    //   extractedText.match(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i)?.[0] ||
+    //   "";
+    // const phone =
+    //   extractedText.match(/(\+?\d[\d -]{8,}\d)/)?.[0] || "";
+    const sections = autoParseSections(extractedText);
     // Clean up
     await fs.unlink(filePath);
 
     return new Response(
       JSON.stringify({
-        text: extractedText,
-        email,
-        phone,
+        //text: extractedText,
+        // email,
+        // phone,
+        sections
       }),
       { status: 200 }
     );

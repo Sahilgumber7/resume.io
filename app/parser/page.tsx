@@ -19,10 +19,13 @@ const Parser = () => {
         method: 'POST',
         body: formData
       });
-      if (!res.ok) {
+      
+     const data = await res.json();
+     console.log(data);
+     if (!res.ok) {
+        console.error("Server error:", data); 
         throw new Error('Failed to parse resume');
       }
-     const data = await res.json();
       setParsedData(data); 
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -54,7 +57,7 @@ const Parser = () => {
       )}
 
       {parsedData && (
-          <div className="mt-8 text-left bg-gray-100 p-6 rounded-lg shadow-lg w-[80%] mx-auto">
+          <div className="mt-8 text-left bg-gray-100 p-6 rounded-lg shadow-lg w-[80%] mx-auto text-black">
             <h2 className="text-lg font-semibold mb-3">Extracted Information:</h2>
             <pre className="text-sm whitespace-pre-wrap">
               {JSON.stringify(parsedData, null, 2)}
