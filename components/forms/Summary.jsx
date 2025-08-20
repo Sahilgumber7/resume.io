@@ -38,40 +38,72 @@ function Summary({ enabledNext }) {
     }
   }, [resumeId, resumeInfo, setResumeInfo])
 
-const handleSave = async () => {
-  if (!resumeId) {
-    toast.error('Resume ID not found.')
-    return
+  const handleSave = async () => {
+    if (!resumeId) {
+      toast.error('Resume ID not found.')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/resumes/${resumeId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ summary }),
+      })
+
+      if (!res.ok) throw new Error()
+
+      toast.success('Summary updated successfully!')
+
+      // Update context after successful save
+      setResumeInfo((prev) => ({
+        ...prev,
+        summary,
+      }))
+
+      enabledNext?.(true)
+    } catch (error) {
+      toast.error('Failed to update summary.')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  setLoading(true)
-  try {
-    const res = await fetch(`/api/resumes/${resumeId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ summary }), // ✅ FIXED: no "data" wrapper
-    })
+  const handleGenerateAI = async () => {
+    if (!summary) {
+      toast.error('Please write something first.')
+      return
+    }
 
-    if (!res.ok) throw new Error()
+    setLoading(true)
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `Rewrite this resume summary in a professional and concise tone:\n\n${summary}`,
+        }),
+      })
 
-    toast.success('Summary updated successfully!')
+      if (!res.ok) throw new Error()
+      const data = await res.json()
 
-    // Update context after successful save
-    setResumeInfo((prev) => ({
-      ...prev,
-      summary,
-    }))
-
-    enabledNext?.(true)
-  } catch (error) {
-    toast.error('Failed to update summary.')
-  } finally {
-    setLoading(false)
+      setSummary(data.output) // update textarea
+      setResumeInfo((prev) => ({
+        ...prev,
+        summary: data.output,
+      }))
+      toast.success('AI-generated summary applied!')
+    } catch (err) {
+      console.error('AI generation failed:', err)
+      toast.error('Failed to generate summary.')
+    } finally {
+      setLoading(false)
+    }
   }
-}
-
 
   return (
     <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
@@ -81,24 +113,39 @@ const handleSave = async () => {
       </p>
 
       <Textarea
-      rows={6}
-      value={summary}
-      onChange={(e) => {
-      const newSummary = e.target.value
-      setSummary(newSummary)
-      setResumeInfo((prev) => ({
-      ...prev,
-      summary: newSummary,
-    }))
-    enabledNext?.(false)
-  }}
-  placeholder="E.g. Passionate software developer with 3+ years of experience..."
-/>
+        rows={6}
+        value={summary}
+        onChange={(e) => {
+          const newSummary = e.target.value
+          setSummary(newSummary)
+          setResumeInfo((prev) => ({
+            ...prev,
+            summary: newSummary,
+          }))
+          enabledNext?.(false)
+        }}
+        placeholder="E.g. Passionate software developer with 3+ years of experience..."
+      />
 
+      <div className="flex justify-between mt-4">
+        <Button
+          variant="outline"
+          disabled={loading}
+          onClick={handleGenerateAI}
+        >
+          {loading ? (
+            <LoaderCircle className="w-4 h-4 animate-spin" />
+          ) : (
+            '✨ Generate with AI'
+          )}
+        </Button>
 
-      <div className="flex justify-end mt-4">
         <Button disabled={loading} onClick={handleSave}>
-          {loading ? <LoaderCircle className="w-4 h-4 animate-spin" /> : 'Save'}
+          {loading ? (
+            <LoaderCircle className="w-4 h-4 animate-spin" />
+          ) : (
+            'Save'
+          )}
         </Button>
       </div>
     </div>
