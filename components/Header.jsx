@@ -27,7 +27,7 @@ function Header() {
           <UserButton afterSignOutUrl="/" />
         </div>
       ) : (
-        <Link href="/auth/sign-in">
+        <Link href="/auth/auth/sign-in">
           <Button>Get Started</Button>
         </Link>
       )}

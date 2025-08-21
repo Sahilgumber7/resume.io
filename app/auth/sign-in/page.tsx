@@ -1,4 +1,4 @@
-// app/sign-in/page.tsx
+// app/auth/sign-in/page.tsx
 'use client';
 
 import { SignIn } from '@clerk/nextjs';
@@ -6,7 +6,7 @@ import { SignIn } from '@clerk/nextjs';
 export default function SignInPage() {
   return (
     <div className="flex justify-center items-center h-screen">
-      <SignIn path="/sign-in" routing="path" signUpUrl="/sign-up" />
+      <SignIn path="/auth/sign-in" routing="path" signUpUrl="/auth/sign-up" />
     </div>
   );
 }
