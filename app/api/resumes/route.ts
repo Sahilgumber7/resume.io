@@ -4,7 +4,7 @@ import { auth } from '@clerk/nextjs/server';
 import Resume from '@/models/resume';
 import { connectDB } from '@/lib/db';
 
-// GET /api/resumes - Get all resumes for the current user (only if signed in)
+// GET /api/resumes - Get all resumes for the current user (signed in only)
 export async function GET() {
   try {
     const { userId } = await auth();
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     const newResume = await Resume.create({
       ...body,
-      userClerkId: userId || 'guest', // store guest if not logged in
+      userClerkId: userId || null, // store null if guest, claim later after login
     });
 
     return NextResponse.json(newResume, { status: 201 });

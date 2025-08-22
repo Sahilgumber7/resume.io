@@ -13,12 +13,11 @@ function extractResumeId(req: NextRequest) {
 // Get current user or guest
 function getUserIdentifier(userId: string | null, req: NextRequest) {
   if (userId) return { userClerkId: userId };
-  // fallback to guest session ID (stored in cookie or query param)
   const guestId = req.cookies.get('guestId')?.value;
-  return { userClerkId: 'guest', guestSessionId: guestId || null };
+  return { userClerkId: null, guestSessionId: guestId || null };
 }
 
-// GET /api/resumes/:resumeId
+// ✅ GET /api/resumes/:resumeId
 export async function GET(req: NextRequest) {
   try {
     await connectDB();
@@ -36,8 +35,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-
-// DELETE /api/resumes/:resumeId
+// ✅ DELETE /api/resumes/:resumeId
 export async function DELETE(req: NextRequest) {
   try {
     const { userId } = await auth();
@@ -48,7 +46,7 @@ export async function DELETE(req: NextRequest) {
 
     const deleted = await Resume.findOneAndDelete({ _id: resumeId, ...query });
     if (!deleted) {
-      return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Resume not found or not authorized' }, { status: 404 });
     }
 
     return NextResponse.json({ message: 'Resume deleted successfully' });
@@ -58,7 +56,7 @@ export async function DELETE(req: NextRequest) {
   }
 }
 
-// PUT /api/resumes/:resumeId
+// ✅ PUT /api/resumes/:resumeId (replace full resume)
 export async function PUT(req: NextRequest) {
   try {
     const { userId } = await auth();
@@ -68,9 +66,17 @@ export async function PUT(req: NextRequest) {
     const resumeId = extractResumeId(req);
     const query = getUserIdentifier(userId, req);
 
-    const updated = await Resume.findOneAndUpdate({ _id: resumeId, ...query }, data, { new: true });
+    // prevent changing ownership
+    delete data.userClerkId;
+    delete data.guestSessionId;
+
+    const updated = await Resume.findOneAndUpdate(
+      { _id: resumeId, ...query },
+      data,
+      { new: true }
+    );
     if (!updated) {
-      return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Resume not found or not authorized' }, { status: 404 });
     }
 
     return NextResponse.json(updated);
@@ -80,19 +86,22 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// PATCH /api/resumes/:resumeId
+// ✅ PATCH /api/resumes/:resumeId (link guest → Clerk user)
 export async function PATCH(req: NextRequest) {
   try {
     const { userId } = await auth();
-    const body = await req.json();
     await connectDB();
 
-    const resumeId = extractResumeId(req);
-    const query = getUserIdentifier(userId, req);
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized: sign in first' }, { status: 401 });
+    }
 
-    const updatedResume = await Resume.findOneAndUpdate(
-      { _id: resumeId, ...query },
-      { $set: body },
+    const resumeId = extractResumeId(req);
+
+    // find resume that belongs to guest
+    const updatedResume = await Resume.findByIdAndUpdate(
+      resumeId,
+      { userClerkId: userId, guestSessionId: null },
       { new: true }
     );
 
@@ -103,6 +112,6 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json(updatedResume);
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: 'Failed to update resume' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to link resume' }, { status: 500 });
   }
 }

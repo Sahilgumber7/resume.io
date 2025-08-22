@@ -46,17 +46,16 @@ export default function ViewResume() {
     }
   }
 
-  // Link resume to logged-in user
+  // ✅ Link resume to logged-in user
   const linkResumeToUser = async () => {
     try {
       const res = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId: user.id }),
       })
+
       if (!res.ok) throw new Error('Failed to link resume')
+      const updated = await res.json()
+      setResumeInfo(updated) // refresh UI with new userClerkId
       toast.success('Resume saved to your account for future access!')
     } catch (err) {
       console.error(err)
@@ -64,9 +63,9 @@ export default function ViewResume() {
     }
   }
 
-  // If user just signed in and resume is not linked yet
+  // ✅ Auto-link after login if resume not yet linked
   useEffect(() => {
-    if (isSignedIn && resumeId && resumeInfo && !resumeInfo.userId) {
+    if (isSignedIn && resumeId && resumeInfo && !resumeInfo.userClerkId) {
       linkResumeToUser()
     }
   }, [isSignedIn, resumeId, resumeInfo])
