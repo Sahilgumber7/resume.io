@@ -47,21 +47,26 @@ export default function ViewResume() {
   }
 
   // ✅ Link resume to logged-in user
-  const linkResumeToUser = async () => {
-    try {
-      const res = await fetch(`/api/resumes/${resumeId}`, {
-        method: 'PATCH',
-      })
+const linkResumeToUser = async () => {
+  try {
+    const res = await fetch(`/api/resumes/${resumeId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userClerkId: user.id }),
+    })
 
-      if (!res.ok) throw new Error('Failed to link resume')
-      const updated = await res.json()
-      setResumeInfo(updated) // refresh UI with new userClerkId
-      toast.success('Resume saved to your account for future access!')
-    } catch (err) {
-      console.error(err)
-      toast.error('Could not save resume. Please try again!')
-    }
+    if (!res.ok) throw new Error('Failed to link resume')
+    const updated = await res.json()
+    setResumeInfo(updated)
+    toast.success('Resume saved to your account for future access!')
+  } catch (err) {
+    console.error(err)
+    toast.error('Could not save resume. Please try again!')
   }
+}
+
 
   // ✅ Auto-link after login if resume not yet linked
   useEffect(() => {
@@ -87,6 +92,7 @@ export default function ViewResume() {
           <div className="flex justify-between px-6 sm:px-12 md:px-20 my-10">
             <Button onClick={handleDownload}>Download</Button>
             <Button onClick={handleShare}>Share</Button>
+            <Button onClick={linkResumeToUser}>Save</Button>
           </div>
 
           {!isSignedIn && (
