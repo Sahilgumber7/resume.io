@@ -5,9 +5,11 @@ import { useParams } from 'next/navigation'
 import { useUser, SignInButton } from '@clerk/nextjs'
 import Lnavbar from '@/components/Lnavbar'
 import { Button } from '@/components/ui/button'
-import ResumePreview from '@/components/ResumePreview'
 import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 import { toast } from 'sonner'
+import { PDFViewer } from '@react-pdf/renderer'
+import ResumePDF from '@/components/ResumePDF'
+import DownloadPDFButton from '../../../../components/DownloadPDFButton'
 
 export default function ViewResume() {
   const [resumeInfo, setResumeInfo] = useState(null)
@@ -15,7 +17,7 @@ export default function ViewResume() {
   const resumeId = params?.resumeId
   const { user, isSignedIn } = useUser()
 
-  // Fetch resume info
+  // Fetch resume data
   useEffect(() => {
     if (resumeId) {
       fetch(`/api/resumes/${resumeId}`)
@@ -25,95 +27,95 @@ export default function ViewResume() {
     }
   }, [resumeId])
 
-  const handleDownload = () => {
-    window.print()
-  }
+  // Save resume to user account
+  const linkResumeToUser = async () => {
+    try {
+      const res = await fetch(`/api/resumes/${resumeId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userClerkId: user.id }),
+      })
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${resumeInfo?.firstName ?? ''} ${resumeInfo?.lastName ?? ''} Resume`,
-          text: 'Hello Everyone, This is my resume. Please open the URL to see it.',
-          url: `${process.env.NEXT_PUBLIC_BASE_URL}/my-resume/${resumeId}/view`,
-        })
-        console.log('Shared successfully!')
-      } catch (error) {
-        console.error('Error sharing:', error)
-      }
-    } else {
-      alert('Web Share is not supported on this device/browser.')
+      if (!res.ok) throw new Error('Failed to link resume')
+      const updated = await res.json()
+      setResumeInfo(updated)
+      toast.success('Resume saved to your account for future access!')
+    } catch (err) {
+      console.error(err)
+      toast.error('Could not save resume. Please try again!')
     }
   }
 
-  // ✅ Link resume to logged-in user
-const linkResumeToUser = async () => {
-  try {
-    const res = await fetch(`/api/resumes/${resumeId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userClerkId: user.id }),
-    })
-
-    if (!res.ok) throw new Error('Failed to link resume')
-    const updated = await res.json()
-    setResumeInfo(updated)
-    toast.success('Resume saved to your account for future access!')
-  } catch (err) {
-    console.error(err)
-    toast.error('Could not save resume. Please try again!')
-  }
-}
-
-
-  // ✅ Auto-link after login if resume not yet linked
+  // Auto-link after login
   useEffect(() => {
     if (isSignedIn && resumeId && resumeInfo && !resumeInfo.userClerkId) {
       linkResumeToUser()
     }
   }, [isSignedIn, resumeId, resumeInfo])
 
+  if (!resumeInfo) {
+    return <p className="text-center my-20">Loading resume...</p>
+  }
+
   return (
     <ResumeInfoContext.Provider value={{ resumeInfo, setResumeInfo }}>
       <div id="no-print">
         <Lnavbar />
 
-        <div className="my-10 mx-10 md:mx-20 lg:mx-36">
-          <h2 className="text-center text-2xl font-medium">
-            Congrats! Your Ultimate AI-generated Resume is ready!
-          </h2>
-          <p className="text-center text-gray-400">
-            Now you are ready to download your resume and share the unique
-            resume URL with your friends and family.
-          </p>
-
-          <div className="flex justify-between px-6 sm:px-12 md:px-20 my-10">
-            <Button onClick={handleDownload}>Download</Button>
-            <Button onClick={handleShare}>Share</Button>
-            <Button onClick={linkResumeToUser}>Save</Button>
+        {/* 🔥 Main Container with Side-by-Side Layout */}
+        <div className="my-10 mx-6 md:mx-20 lg:mx-36 flex flex-col lg:flex-row gap-10">
+          
+          {/* LEFT: Small PDF Preview */}
+          <div className="flex-1 border shadow-lg overflow-hidden">
+            <PDFViewer tabIndex={-1} style={{ width: '100%', height: '80vh' }}>
+              <ResumePDF resumeInfo={resumeInfo} />
+            </PDFViewer >
           </div>
 
-          {!isSignedIn && (
-            <div className="mt-6 flex flex-col items-center">
-              <p className="text-gray-500 text-sm mb-2">
-                Log in to save your resume for future access.
-              </p>
-              <SignInButton
-                mode="redirect"
-                redirectUrl={`/my-resume/${resumeId}/view`}
-              >
-                <Button>Log in to Save</Button>
-              </SignInButton>
-            </div>
-          )}
-        </div>
-      </div>
+          {/* RIGHT: Text + Buttons */}
+          <div className="flex-1 flex flex-col justify-center">
+            <h2 className="text-3xl font-semibold mb-3">
+              Congrats! Your AI-Generated Resume is Ready 🎉
+            </h2>
+            <p className="text-gray-500 mb-6">
+              You can download, share, or save your resume for future access. 
+              Preview is on the left.
+            </p>
 
-      <div className="my-10 mx-10 md:mx-20 lg:mx-36">
-        <div id="print-area">
-          <ResumePreview />
+            <div className="flex flex-wrap gap-4 mb-6">
+              <DownloadPDFButton resumeInfo={resumeInfo} />
+              <Button
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: `${resumeInfo.fullName} Resume`,
+                      text: 'Check out my resume!',
+                      url: `${process.env.NEXT_PUBLIC_BASE_URL}/my-resume/${resumeId}/view`,
+                    })
+                  } else {
+                    toast.error('Sharing not supported on this device')
+                  }
+                }}
+              >
+                Share
+              </Button>
+              <Button onClick={linkResumeToUser}>Save</Button>
+            </div>
+
+            {!isSignedIn && (
+              <div className="mt-4">
+                <p className="text-gray-500 text-sm mb-2">
+                  Log in to save your resume for future access.
+                </p>
+                <SignInButton
+                  mode="redirect"
+                  redirectUrl={`/my-resume/${resumeId}/view`}
+                >
+                  <Button>Log in to Save</Button>
+                </SignInButton>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </ResumeInfoContext.Provider>

@@ -120,3 +120,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+/* index.css or App.css */
+.react-pdf__Page,
+.react-pdf__Page canvas,
+iframe {
+  caret-color: transparent !important;
+  outline: none !important;
+}

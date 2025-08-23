@@ -1,43 +1,38 @@
-import puppeteer from "puppeteer"
-import ResumePreview from "@/components/ResumePreview"
-import { ResumeInfoContext } from "@/components/ResumeInfoContext"
-import { renderToString } from "react-dom/server"
+import { NextResponse } from 'next/server'
+import { connectDB } from '@/lib/db'
+import Resume from '@/models/resume'
+import { renderToBuffer } from '@react-pdf/renderer'
+import ResumePDFDocument from '@/components/pdf/ResumePDFDocument'
 
+// GET /api/resumes/:resumeId/pdf
 export async function GET(req, { params }) {
-  const { resumeId } = params
+  try {
+    await connectDB()
 
-  // Fetch resume data from DB (mock example)
-  const resumeInfo = {
-    firstName: "John",
-    lastName: "Doe",
-    title: "Software Engineer",
-    // ... other fields
+    const { resumeId } = params
+    if (!resumeId) {
+      return NextResponse.json({ error: 'Missing resumeId' }, { status: 400 })
+    }
+
+    const resume = await Resume.findById(resumeId)
+    if (!resume) {
+      return NextResponse.json({ error: 'Resume not found' }, { status: 404 })
+    }
+
+    // Render PDF from React component
+    const pdfBuffer = await renderToBuffer(
+      <ResumePDFDocument resume={resume} />
+    )
+
+    return new NextResponse(pdfBuffer, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="resume-${resumeId}.pdf"`,
+      },
+    })
+  } catch (err) {
+    console.error(err)
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
-
-  // Convert ResumePreview → HTML string
-  const html = renderToString(
-    <ResumeInfoContext.Provider value={{ resumeInfo }}>
-      <ResumePreview />
-    </ResumeInfoContext.Provider>
-  )
-
-  const browser = await puppeteer.launch()
-  const page = await browser.newPage()
-
-  await page.setContent(html, { waitUntil: "networkidle0" })
-
-  const pdfBuffer = await page.pdf({
-    format: "A4",
-    printBackground: true,
-  })
-
-  await browser.close()
-
-  return new Response(pdfBuffer, {
-    status: 200,
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="resume-${resumeId}.pdf"`,
-    },
-  })
 }
