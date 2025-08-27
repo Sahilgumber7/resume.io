@@ -10,7 +10,7 @@ import ProjectPreview from './preview/ProjectPreview'
 function ResumePreview() {
   const { resumeInfo } = useContext(ResumeInfoContext)
 
-  if (!resumeInfo) return null // Or show a loading state
+  if (!resumeInfo) return null 
 
   return (
     <div
