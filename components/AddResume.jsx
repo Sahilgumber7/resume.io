@@ -16,6 +16,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { motion } from 'framer-motion'
 
 export default function AddResume() {
   const [openDialog, setOpenDialog] = useState(false)
@@ -25,14 +26,17 @@ export default function AddResume() {
   const router = useRouter()
 
   const onCreate = async () => {
-    if (!resumeTitle || !user) return
-    setLoading(true)
+    if (!resumeTitle || !user) {
+      toast.error('Please enter a title to continue.')
+      return
+    }
 
+    setLoading(true)
     const uuid = uuidv4()
 
     const data = {
-      title: resumeTitle,
-      userClerkId: user.id, // required by schema
+      title: resumeTitle.trim(),
+      userClerkId: user.id,
       fullName: user.fullName || '',
       jobTitle: '',
       email: user.primaryEmailAddress?.emailAddress || '',
@@ -49,58 +53,81 @@ export default function AddResume() {
     try {
       const res = await fetch('/api/resumes', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
 
       const json = await res.json()
-
       if (!res.ok) throw new Error(json.error || 'Failed to create resume')
 
       const docId = json?.insertedId || json?._id || json?.documentId
       toast.success('Resume created!')
       router.push(`/dashboard/resume/${docId}/edit`)
     } catch (error) {
-      toast.error('Something went wrong!')
       console.error(error)
+      toast.error('Something went wrong while creating your resume.')
     } finally {
       setLoading(false)
       setOpenDialog(false)
+      setResumeTitle('')
     }
   }
 
   return (
-    <div>
+    <motion.div
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.98 }}
+      className="transition-transform"
+    >
+      {/* Add Resume Card */}
       <div
-        className='p-14 py-24 border items-center flex justify-center bg-secondary rounded-lg h-[280px] hover:scale-105 transition-all hover:shadow-md cursor-pointer border-dashed'
+        className="p-14 py-24 border border-dashed items-center flex justify-center
+        bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl h-[280px] 
+        hover:shadow-xl cursor-pointer transition-all duration-300"
         onClick={() => setOpenDialog(true)}
       >
-        <PlusSquare />
+        <PlusSquare className="w-10 h-10 text-gray-600" />
       </div>
 
+      {/* Dialog */}
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md rounded-2xl shadow-xl">
           <DialogHeader>
-            <DialogTitle>Create New Resume</DialogTitle>
-            <DialogDescription>
-              <p>Add a title for your new resume</p>
-              <Input
-                className="my-2"
-                placeholder="Ex. Full Stack Resume"
-                onChange={(e) => setResumeTitle(e.target.value)}
-              />
+            <DialogTitle className="text-lg font-semibold">
+              Create New Resume
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">
+              Give your resume a clear title to get started.
             </DialogDescription>
-            <div className='flex justify-end gap-5 mt-4'>
-              <Button onClick={() => setOpenDialog(false)} variant="ghost">Cancel</Button>
-              <Button onClick={onCreate} disabled={!resumeTitle || loading}>
-                {loading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Create'}
-              </Button>
-            </div>
           </DialogHeader>
+
+          <div className="mt-4">
+            <Input
+              className="my-2"
+              placeholder="Ex. Frontend Developer Resume"
+              value={resumeTitle}
+              onChange={(e) => setResumeTitle(e.target.value)}
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 mt-6">
+            <Button
+              onClick={() => setOpenDialog(false)}
+              variant="outline"
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={onCreate}
+              disabled={!resumeTitle.trim() || loading}
+              className="bg-primary text-white"
+            >
+              {loading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : 'Create'}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   )
 }

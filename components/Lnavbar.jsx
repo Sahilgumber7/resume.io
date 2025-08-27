@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Menu } from 'lucide-react';
 
 export default function Lnavbar() {
   const { user, isSignedIn } = useUser();
@@ -23,6 +24,7 @@ export default function Lnavbar() {
   const [openDialog, setOpenDialog] = useState(false);
   const [resumeTitle, setResumeTitle] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
 
   const handleBuilderClick = () => setOpenDialog(true);
 
@@ -69,57 +71,84 @@ export default function Lnavbar() {
   };
 
   return (
-    <nav className="w-full flex items-center justify-between px-4 md:px-10 py-3 shadow-sm bg-white dark:bg-zinc-900 sticky top-0 z-50">
-      <div className="text-lg md:text-2xl font-bold text-primary tracking-tight">
-        resume<span className="text-muted-foreground">.io</span>
+    <nav className="w-full sticky top-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/50 shadow-sm">
+      <div className="flex justify-between items-center px-4 md:px-10 py-3">
+        {/* Logo */}
+        <Link href="/" className="text-xl md:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          resume<span className="text-muted-foreground">.io</span>
+        </Link>
+
+        {/* Desktop Menu */}
+        <div className="hidden md:flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={handleBuilderClick}>
+            Builder
+          </Button>
+          <SignedIn>
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm">Dashboard</Button>
+            </Link>
+          </SignedIn>
+          <ThemeToggle />
+          <SignedOut>
+            <SignInButton mode="modal">
+              <Button size="sm">Sign In</Button>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </div>
+
+        {/* Mobile Menu Toggle */}
+        <button
+          className="md:hidden p-2 rounded-lg hover:bg-muted/30 transition"
+          onClick={() => setMobileMenu(!mobileMenu)}
+        >
+          <Menu className="w-6 h-6" />
+        </button>
       </div>
 
-      <div className="flex flex-row items-center gap-2 md:gap-4 text-sm md:text-base">
-        <Button variant="ghost" size="sm" className="px-2 md:px-3" onClick={handleBuilderClick}>
-          Builder
-        </Button>
+      {/* Mobile Dropdown */}
+      {mobileMenu && (
+        <div className="md:hidden px-4 py-3 flex flex-col gap-3 border-t border-border/50 bg-background/80 backdrop-blur-lg">
+          <Button variant="ghost" size="sm" onClick={handleBuilderClick}>
+            Builder
+          </Button>
+          <SignedIn>
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm">Dashboard</Button>
+            </Link>
+          </SignedIn>
+          <ThemeToggle />
+          <SignedOut>
+            <SignInButton mode="modal">
+              <Button size="sm">Sign In</Button>
+            </SignInButton>
+          </SignedOut>
+        </div>
+      )}
 
-        <SignedIn>
-          <Link href="/dashboard">
-            <Button variant="ghost" size="sm" className="px-2 md:px-3">
-              Dashboard
-            </Button>
-          </Link>
-        </SignedIn>
-
-        <ThemeToggle />
-
-        <SignedOut>
-          <SignInButton mode="modal">
-            <Button size="sm" className="px-2 md:px-3">Sign In</Button>
-          </SignInButton>
-        </SignedOut>
-
-        <SignedIn>
-          <UserButton />
-        </SignedIn>
-      </div>
-
+      {/* Create Resume Dialog */}
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Create New Resume</DialogTitle>
-            <DialogDescription>
-              <p>Add a title for your new resume</p>
-              <Input
-                className="my-2"
-                placeholder="Ex. Full Stack Resume"
-                value={resumeTitle}
-                onChange={(e) => setResumeTitle(e.target.value)}
-              />
+            <DialogTitle className="text-xl font-semibold">Create New Resume</DialogTitle>
+            <DialogDescription className="text-sm">
+              Give your new resume a descriptive title.
             </DialogDescription>
-            <div className="flex justify-end gap-5 mt-4">
-              <Button onClick={() => setOpenDialog(false)} variant="ghost">Cancel</Button>
-              <Button onClick={onCreate} disabled={!resumeTitle || loading}>
-                {loading ? "Creating..." : "Create"}
-              </Button>
-            </div>
           </DialogHeader>
+          <Input
+            className="my-4"
+            placeholder="Ex. Full Stack Developer Resume"
+            value={resumeTitle}
+            onChange={(e) => setResumeTitle(e.target.value)}
+          />
+          <div className="flex justify-end gap-3">
+            <Button variant="ghost" onClick={() => setOpenDialog(false)}>Cancel</Button>
+            <Button onClick={onCreate} disabled={!resumeTitle || loading}>
+              {loading ? 'Creating...' : 'Create'}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </nav>

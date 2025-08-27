@@ -1,18 +1,18 @@
 'use client';
 
-import { Loader2Icon, MoreVertical } from 'lucide-react'
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import Link from 'next/link'
-import { toast } from 'sonner'
+import { Loader2Icon, MoreVertical } from 'lucide-react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
+import { toast } from 'sonner';
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
 import {
   AlertDialog,
@@ -23,7 +23,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 
 function ResumeCardItem({ resume, refreshData }) {
   const router = useRouter();
@@ -51,52 +51,83 @@ function ResumeCardItem({ resume, refreshData }) {
   };
 
   return (
-    <div>
-      <Link href={`/dashboard/resume/${resume._id}/edit`}>
-        <div
-          className='p-14 bg-gradient-to-b from-pink-100 via-purple-200 to-blue-200 h-[280px] rounded-t-lg border-t-4'
-          style={{ borderColor: resume?.themeColor }}
-        >
-          <div className='flex items-center justify-center h-[180px]'>
-            <Image src="/cv.jpg" width={80} height={80} alt="CV icon" />
-          </div>
-        </div>
-      </Link>
-
+    <div className="group transition-transform hover:scale-105 duration-300 cursor-pointer">
+      {/* Card Container */}
       <div
-        className='border p-3 flex justify-between items-center text-white rounded-b-lg shadow-lg'
-        style={{ background: resume?.themeColor }}
+        className="rounded-lg border border-dashed shadow-sm hover:shadow-md overflow-hidden bg-secondary"
+        style={{ borderColor: resume?.themeColor }}
       >
-        <h2 className='text-sm truncate'>{resume.title}</h2>
+        {/* Image Section */}
+        <Link href={`/dashboard/resume/${resume._id}/edit`}>
+          <div className="relative h-[280px] w-full">
+            <Image
+              src="/cv.jpg"
+              alt="Resume Preview"
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+        </Link>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <MoreVertical className='h-4 w-4 cursor-pointer' />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => router.push(`/dashboard/resume/${resume._id}/edit`)}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push(`/my-resume/${resume._id}/view`)}>View</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push(`/my-resume/${resume._id}/download`)}>Download</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setOpenAlert(true)}>Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Bottom Section */}
+        <div className="flex justify-between items-center p-3 border-t bg-background">
+          <h2 className="text-sm font-medium truncate">{resume.title}</h2>
 
-        <AlertDialog open={openAlert}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your resume.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setOpenAlert(false)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={onDelete} disabled={loading}>
-                {loading ? <Loader2Icon className='animate-spin w-4 h-4' /> : 'Delete'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          {/* Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <MoreVertical className="w-5 h-5 cursor-pointer opacity-90 hover:opacity-100 transition" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-40 rounded-xl border border-border/50 shadow-lg bg-background/90 backdrop-blur-lg">
+              <DropdownMenuItem
+                onClick={() => router.push(`/dashboard/resume/${resume._id}/edit`)}
+              >
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => router.push(`/my-resume/${resume._id}/view`)}
+              >
+                View
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => router.push(`/my-resume/${resume._id}/download`)}
+              >
+                Download
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-red-500"
+                onClick={() => setOpenAlert(true)}
+              >
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Delete Confirmation Dialog */}
+          <AlertDialog open={openAlert} onOpenChange={setOpenAlert}>
+            <AlertDialogContent className="rounded-2xl border border-border/50 bg-background/90 backdrop-blur-lg">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-lg font-bold">
+                  Are you absolutely sure?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-sm text-muted-foreground">
+                  This action cannot be undone. This will permanently delete your resume.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-red-500 hover:bg-red-600 text-white rounded-xl"
+                  onClick={onDelete}
+                  disabled={loading}
+                >
+                  {loading ? <Loader2Icon className="animate-spin w-4 h-4" /> : 'Delete'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
     </div>
   );
