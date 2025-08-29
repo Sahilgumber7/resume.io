@@ -13,7 +13,6 @@ export default function EditResumePage() {
   const [resumeInfo, setResumeInfo] = useState(null)
   const [selectedTemplate, setSelectedTemplate] = useState("template1")
 
-  // Fetch resume info
   useEffect(() => {
     if (resumeId) {
       fetch(`/api/resumes/${resumeId}`)
@@ -27,20 +26,27 @@ export default function EditResumePage() {
     <ResumeInfoContext.Provider value={{ resumeInfo, setResumeInfo }}>
       <div>
         <Lnavbar />
-        <div className="grid grid-cols-1 md:grid-cols-2 p-10 gap-10">
-          {/* Form Section */}
-          <FormSection />
+        <div className="flex flex-col md:flex-row p-10">
+          
+          {/* Left Section */}
+          <div className="flex-1 pr-0 md:pr-6">
+            <FormSection />
+          </div>
 
-          {/* Right Side: Template Selector + Resume Preview */}
-          <div>
+          {/* Divider */}
+          <div className="hidden md:block w-px bg-gray-300"></div>
+
+          {/* Right Section */}
+          <div className="flex-1 pl-0 md:pl-6 mt-10 md:mt-0">
             <TemplateSelector 
               selectedTemplate={selectedTemplate} 
               setSelectedTemplate={setSelectedTemplate} 
             />
-            <div className="border rounded shadow p-4">
+            <div className="border rounded shadow">
               <ResumePreview selectedTemplate={selectedTemplate} />
             </div>
           </div>
+
         </div>
       </div>
     </ResumeInfoContext.Provider>
