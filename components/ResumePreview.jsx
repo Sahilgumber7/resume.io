@@ -1,39 +1,16 @@
-import { ResumeInfoContext } from '@/components/ResumeInfoContext'
-import React, { useContext } from 'react'
-import PersonalDetailPreview from './preview/PersonalDetailPreview'
-import SummaryPreview from './preview/SummaryPreview'
-import ExperiencePreview from './preview/ExperiencePreview'
-import EducationalPreview from './preview/EducationalPreview'
-import SkillsPreview from './preview/SkillsPreview'
-import ProjectPreview from './preview/ProjectPreview'
+// src/components/ResumePreview.js
+import React, { useContext } from "react";
+import { ResumeInfoContext } from "@/components/ResumeInfoContext";
+import { templates } from "./template";
 
-function ResumePreview() {
-  const { resumeInfo } = useContext(ResumeInfoContext)
+function ResumePreview({ selectedTemplate = "template1" }) {
+  const { resumeInfo } = useContext(ResumeInfoContext);
 
-  if (!resumeInfo) return null 
+  if (!resumeInfo) return null;
 
-  return (
-    <div
-    className="shadow-lg h-full p-14 border-t-[20px] bg-white text-black dark:bg-white dark:text-black"
-    style={{ borderColor: resumeInfo?.themeColor }}
-    >
+  const SelectedTemplate = templates[selectedTemplate] || templates.template1;
 
-      <PersonalDetailPreview resumeInfo={resumeInfo} />
-      <SummaryPreview resumeInfo={resumeInfo} />
-      {resumeInfo?.education?.length > 0 && (
-        <EducationalPreview resumeInfo={resumeInfo} />
-      )}
-      {resumeInfo?.experience?.length > 0 && (
-        <ExperiencePreview resumeInfo={resumeInfo} />
-      )}
-      {resumeInfo?.projects?.length > 0 && (
-        <ProjectPreview resumeInfo={resumeInfo} />
-      )}
-      {resumeInfo?.skills?.length > 0 && (
-        <SkillsPreview resumeInfo={resumeInfo} />
-      )}
-    </div>
-  )
+  return <SelectedTemplate resumeInfo={resumeInfo} />;
 }
 
-export default ResumePreview
+export default ResumePreview;
