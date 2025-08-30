@@ -13,7 +13,7 @@ const ResumeSchema = new mongoose.Schema(
     },
     
 
-    // Flattened basic info fields
+    
     fullName: {
       type: String,
     },
