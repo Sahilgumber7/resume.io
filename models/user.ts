@@ -1,5 +1,5 @@
 // models/User.ts
-import mongoose, { Schema, Document, models, model } from 'mongoose';
+import  { Schema, Document, models, model } from 'mongoose';
 
 export interface IUser extends Document {
   clerkId: string;

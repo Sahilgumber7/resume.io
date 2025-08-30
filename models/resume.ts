@@ -11,6 +11,7 @@ const ResumeSchema = new mongoose.Schema(
       type: String,
       default: "Untitled Resume",
     },
+    
 
     // Flattened basic info fields
     fullName: {
