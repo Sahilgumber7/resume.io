@@ -32,7 +32,18 @@ export default function AddResume() {
     }
 
     setLoading(true)
-    const uuid = uuidv4()
+    const uuid = uuidv4()                                             
+
+
+
+
+
+
+
+
+
+
+    
 
     const data = {
       title: resumeTitle.trim(),
