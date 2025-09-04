@@ -8,6 +8,14 @@ import Lnavbar from '@/components/Lnavbar'
 import { ResumeInfoContext } from '../../../components/ResumeInfoContext'
 
 
+
+
+
+
+
+
+
+
 export default function Builder() {
   const { resumeId } = useParams()
   const [resumeInfo, setResumeInfo] = useState(null)
