@@ -1,8 +1,11 @@
-import pdf from "pdf-parse";
+import pdf from "pdf-parse/lib/pdf-parse.js"; // ✅ Fix: avoids ENOENT issue
 import mammoth from "mammoth";
 import { promises as fs } from "fs";
 import path from "path";
 
+export const runtime = "nodejs"; // ✅ ensures Node.js runtime, not edge
+
+// --- Helper: Split resume into sections ---
 function autoParseSections(text: string) {
   const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
   const sections: Record<string, string[]> = {};
@@ -13,7 +16,8 @@ function autoParseSections(text: string) {
     const isHeading =
       words.length <= 4 &&
       ((line === line.toUpperCase()) || /^[A-Z][a-z]+/.test(line)) &&
-      !line.match(/\d/) && !line.includes(",");
+      !line.match(/\d/) &&
+      !line.includes(",");
 
     if (isHeading) {
       currentSection = line.toUpperCase();
@@ -26,25 +30,26 @@ function autoParseSections(text: string) {
 
   return sections;
 }
+
+// --- API Route ---
 export async function POST(req: Request) {
   try {
     const parsedData = await req.formData();
     const file = parsedData.get("resume") as File;
 
     if (!file) {
-      return new Response(JSON.stringify({ error: "No file uploaded" }), {
-        status: 400,
-      });
+      return Response.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    const tempDirectory = path.join(process.cwd(), "uploads");
-    await fs.mkdir(tempDirectory, { recursive: true });
+    // Save uploaded file temporarily
+    const tempDir = path.join(process.cwd(), "uploads");
+    await fs.mkdir(tempDir, { recursive: true });
 
-    const filePath = path.join(tempDirectory, file.name);
+    const filePath = path.join(tempDir, file.name);
     const buffer = Buffer.from(await file.arrayBuffer());
     await fs.writeFile(filePath, buffer);
- 
-    //parsing by extension of the file
+
+    // Parse text based on extension
     const ext = path.extname(file.name).toLowerCase();
     let extractedText = "";
 
@@ -55,34 +60,19 @@ export async function POST(req: Request) {
       const data = await mammoth.extractRawText({ path: filePath });
       extractedText = data.value;
     } else {
-      return new Response(JSON.stringify({ error: "Unsupported file type" }), {
-        status: 400,
-      });
+      await fs.unlink(filePath); // cleanup
+      return Response.json({ error: "Unsupported file type" }, { status: 400 });
     }
 
-    // extract email & phone
-    // const email =
-    //   extractedText.match(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i)?.[0] ||
-    //   "";
-    // const phone =
-    //   extractedText.match(/(\+?\d[\d -]{8,}\d)/)?.[0] || "";
+    // Auto-parse into sections
     const sections = autoParseSections(extractedText);
-    // Clean up
+
+    // Cleanup uploaded file
     await fs.unlink(filePath);
 
-    return new Response(
-      JSON.stringify({
-        //text: extractedText,
-        // email,
-        // phone,
-        sections
-      }),
-      { status: 200 }
-    );
-  } catch (error: any) {
-    console.error(error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-    });
+    return Response.json({ sections }, { status: 200 });
+  } catch (error: unknown) {
+    console.error("Parser error:", error);
+    return Response.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }

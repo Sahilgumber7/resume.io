@@ -3,7 +3,7 @@
 import Lnavbar from '@/components/Lnavbar';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload } from 'lucide-react';
 
 interface Sections {
@@ -82,18 +82,27 @@ const Parser: React.FC = () => {
           </CardContent>
         </Card>
 
-        <div className="m-10 w-full max-w-2xl space-y-6">
-          {sections &&
+        <div className="mt-10 w-full max-w-3xl space-y-6">
+          {sections ? (
             Object.entries(sections).map(([heading, content]) => (
-              <div key={heading}>
-                <h2 className="text-lg font-semibold mb-2">{heading}</h2>
-                <div className="bg-gray-50 rounded-xl text-black p-3 space-y-1">
+              <Card key={heading} className="shadow-sm border rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold">{heading}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
                   {content.map((line, idx) => (
-                    <p key={idx}>{line}</p>
+                    <p key={idx} className="text-sm text-gray-700">
+                      {line}
+                    </p>
                   ))}
-                </div>
-              </div>
-            ))}
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <p className="text-gray-500 text-center">
+              Upload a resume to see parsed sections here.
+            </p>
+          )}
         </div>
       </div>
     </>
