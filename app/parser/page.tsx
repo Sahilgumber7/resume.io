@@ -1,24 +1,25 @@
 'use client';
-
-import Lnavbar from '@/components/Lnavbar';
 import React, { useState } from 'react';
+import Lnavbar from '@/components/Lnavbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload } from 'lucide-react';
 
-interface Sections {
-  [key: string]: string[];
+interface Resume {
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  linkedin: string | null;
+  sections: Record<string, string[]>;
 }
 
-const Parser: React.FC = () => {
-  const [fileName, setFileName] = useState<string>('');
-  const [sections, setSections] = useState<Sections | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+const ParserPage: React.FC = () => {
+  const [fileName, setFileName] = useState('');
+  const [resume, setResume] = useState<Resume | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFileChange = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ): Promise<void> => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
 
     const file = e.target.files[0];
@@ -30,26 +31,15 @@ const Parser: React.FC = () => {
     formData.append('resume', file);
 
     try {
-      const res = await fetch('/api/parser', {
-        method: 'POST',
-        body: formData,
-      });
-
+      const res = await fetch('/api/parser', { method: 'POST', body: formData });
       const data = await res.json();
 
-      if (!res.ok) {
-        console.error('Server error:', data);
-        throw new Error(data?.message || 'Failed to parse resume');
-      }
+      if (!res.ok) throw new Error(data?.error || 'Failed to parse resume');
 
-      setSections(data.sections || {});
+      setResume(data.resume);
     } catch (err: unknown) {
-      console.error('Error uploading file:', err);
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Something went wrong');
-      }
+      console.error(err);
+      setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -59,54 +49,57 @@ const Parser: React.FC = () => {
     <>
       <Lnavbar />
       <div className="p-10 flex flex-col items-center">
-        <Card className="w-full max-w-lg shadow-md">
-          <CardContent className="flex flex-col items-center p-6 space-y-4">
-            <input
-              id="resumeUpload"
-              type="file"
-              accept=".pdf,.doc,.docx,.pages"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-            <label htmlFor="resumeUpload">
-              <Button asChild variant="default" className="flex items-center gap-2">
-                <span>
-                  <Upload className="w-4 h-4 mr-2" /> 
-                  {fileName ? `Uploaded: ${fileName}` : 'Upload Resume'}
-                </span>
-              </Button>
-            </label>
+        <input
+          id="resumeUpload"
+          type="file"
+          accept=".pdf,.doc,.docx"
+          className="hidden"
+          onChange={handleFileChange}
+        />
 
-            {loading && <p className="text-blue-600">Parsing resume...</p>}
-            {error && <p className="text-red-600">{error}</p>}
-          </CardContent>
-        </Card>
+        <label htmlFor="resumeUpload" className="w-full max-w-lg">
+          <Button asChild variant="default">
+            <span className="flex items-center gap-2 justify-center w-full">
+              <Upload className="w-4 h-4" />
+              {fileName ? `Uploaded: ${fileName}` : 'Upload Resume'}
+            </span>
+          </Button>
+        </label>
 
-        <div className="mt-10 w-full max-w-3xl space-y-6">
-          {sections ? (
-            Object.entries(sections).map(([heading, content]) => (
+        {loading && <p className="text-blue-600 mt-2">Parsing resume...</p>}
+        {error && <p className="text-red-600 mt-2">{error}</p>}
+
+        {resume && (
+          <div className="mt-10 w-full max-w-3xl space-y-6">
+            <Card className="shadow-sm border rounded-2xl">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold">Contact Info</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {resume.name && <p><strong>Name:</strong> {resume.name}</p>}
+                {resume.email && <p><strong>Email:</strong> {resume.email}</p>}
+                {resume.phone && <p><strong>Phone:</strong> {resume.phone}</p>}
+                {resume.linkedin && <p><strong>LinkedIn:</strong> {resume.linkedin}</p>}
+              </CardContent>
+            </Card>
+
+            {Object.entries(resume.sections).map(([heading, content]) => (
               <Card key={heading} className="shadow-sm border rounded-2xl">
                 <CardHeader>
                   <CardTitle className="text-lg font-semibold">{heading}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {content.map((line, idx) => (
-                    <p key={idx} className="text-sm text-gray-700">
-                      {line}
-                    </p>
+                    <p key={idx} className="text-sm text-gray-700">{line}</p>
                   ))}
                 </CardContent>
               </Card>
-            ))
-          ) : (
-            <p className="text-gray-500 text-center">
-              Upload a resume to see parsed sections here.
-            </p>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );
 };
 
-export default Parser;
+export default ParserPage;

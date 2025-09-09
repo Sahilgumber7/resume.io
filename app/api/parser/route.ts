@@ -1,15 +1,15 @@
-import pdf from "pdf-parse/lib/pdf-parse.js"; // ✅ Fix: avoids ENOENT issue
+import pdf from "pdf-parse/lib/pdf-parse.js"; 
 import mammoth from "mammoth";
 import { promises as fs } from "fs";
 import path from "path";
 
-export const runtime = "nodejs"; // ✅ ensures Node.js runtime, not edge
+export const runtime = "nodejs";
 
-// --- Helper: Split resume into sections ---
+// --- Section parser ---
 function autoParseSections(text: string) {
   const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
   const sections: Record<string, string[]> = {};
-  let currentSection = "General";
+  let currentSection = "GENERAL";
 
   for (const line of lines) {
     const words = line.split(" ");
@@ -31,17 +31,47 @@ function autoParseSections(text: string) {
   return sections;
 }
 
-// --- API Route ---
+// --- Contact info extraction ---
+function extractContactInfo(text: string) {
+  const email = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] || null;
+  const phone = text.match(/(\+?\d{1,2}\s?)?(\(?\d{3}\)?[\s.-]?)?\d{3}[\s.-]?\d{4}/)?.[0] || null;
+  const linkedin = text.match(/linkedin\.com\/[a-zA-Z0-9-_/]+/i)?.[0] || null;
+  return { email, phone, linkedin };
+}
+
+// --- Name extraction ---
+function extractName(text: string) {
+  const firstLine = text.split("\n").map(l => l.trim()).filter(Boolean)[0];
+  if (firstLine && /^[A-Z][a-z]+ [A-Z][a-z]+/.test(firstLine)) {
+    return firstLine;
+  }
+  return null;
+}
+
+// --- Full resume parser ---
+function parseResume(text: string) {
+  const sections = autoParseSections(text);
+  const contact = extractContactInfo(text);
+  const name = extractName(text);
+
+  return {
+    name,
+    ...contact,
+    sections,
+    education: sections["EDUCATION"] || [],
+    experience: sections["EXPERIENCE"] || [],
+    skills: sections["SKILLS"] || []
+  };
+}
+
+// --- API ---
 export async function POST(req: Request) {
   try {
-    const parsedData = await req.formData();
-    const file = parsedData.get("resume") as File;
+    const formData = await req.formData();
+    const file = formData.get("resume") as File;
 
-    if (!file) {
-      return Response.json({ error: "No file uploaded" }, { status: 400 });
-    }
+    if (!file) return Response.json({ error: "No file uploaded" }, { status: 400 });
 
-    // Save uploaded file temporarily
     const tempDir = path.join(process.cwd(), "uploads");
     await fs.mkdir(tempDir, { recursive: true });
 
@@ -49,9 +79,8 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     await fs.writeFile(filePath, buffer);
 
-    // Parse text based on extension
-    const ext = path.extname(file.name).toLowerCase();
     let extractedText = "";
+    const ext = path.extname(file.name).toLowerCase();
 
     if (ext === ".pdf") {
       const data = await pdf(buffer);
@@ -60,19 +89,20 @@ export async function POST(req: Request) {
       const data = await mammoth.extractRawText({ path: filePath });
       extractedText = data.value;
     } else {
-      await fs.unlink(filePath); // cleanup
+      await fs.unlink(filePath);
       return Response.json({ error: "Unsupported file type" }, { status: 400 });
     }
 
-    // Auto-parse into sections
-    const sections = autoParseSections(extractedText);
-
-    // Cleanup uploaded file
     await fs.unlink(filePath);
 
-    return Response.json({ sections }, { status: 200 });
+    const resume = parseResume(extractedText);
+
+    return Response.json({ resume }, { status: 200 });
   } catch (error: unknown) {
-    console.error("Parser error:", error);
-    return Response.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
+    console.error(error);
+    return Response.json(
+      { error: error instanceof Error ? error.message : String(error) },
+      { status: 500 }
+    );
   }
 }
