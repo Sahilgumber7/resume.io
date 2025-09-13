@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useUser, RedirectToSignIn } from '@clerk/nextjs';
 import AddResume from '@/components/AddResume';
 import ResumeCardItem from '@/components/ResumeCardItem';
 import axios from 'axios';
@@ -11,8 +11,12 @@ import { FileText, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 function Dashboard() {
-  const { user } = useUser();
+  const { isSignedIn, user } = useUser();
   const [resumeList, setResumeList] = useState([]);
+
+    if (!isSignedIn) {
+    return <RedirectToSignIn />;
+  }
 
   const GetResumesList = async () => {
     try {
