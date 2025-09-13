@@ -18,6 +18,8 @@ function Dashboard() {
     return <RedirectToSignIn />;
   }
 
+  
+
   const GetResumesList = async () => {
     try {
       const res = await axios.get('/api/resumes');
