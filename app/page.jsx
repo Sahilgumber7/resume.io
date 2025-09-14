@@ -7,6 +7,7 @@ import Image from "next/image"
 import Lnavbar from "@/components/Lnavbar"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
+import Footer from "@/components/Footer"
 
 export default function Home() {
   const router = useRouter()
@@ -175,9 +176,7 @@ export default function Home() {
       </motion.section>
 
       {/* Footer */}
-      <footer className="py-10 text-center text-sm text-muted-foreground bg-muted/40">
-        <p>&copy; {new Date().getFullYear()} Resume.io. All rights reserved.</p>
-      </footer>
+      <Footer />
     </main>
   )
 }
