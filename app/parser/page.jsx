@@ -14,7 +14,7 @@ export default function ResumeUploadPage() {
     const formData = new FormData();
     formData.append("resume", file);
 
-    const res = await fetch("/api/resume-parse", {
+    const res = await fetch("/api/parser", {
       method: "POST",
       body: formData,
     });

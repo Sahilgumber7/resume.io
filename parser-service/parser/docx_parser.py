@@ -1,7 +1,7 @@
 import docx2txt
 from . import utils
 
-def parse(path):
+def parse(path: str):
     text = docx2txt.process(path)
 
     return {

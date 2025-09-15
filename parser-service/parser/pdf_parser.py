@@ -1,7 +1,7 @@
 import fitz  # PyMuPDF
 from . import utils
 
-def parse(path):
+def parse(path: str):
     text = ""
     pdf = fitz.open(path)
     for page in pdf:

@@ -12,7 +12,6 @@ import Footer from "@/components/Footer"
 export default function Home() {
   const router = useRouter()
 
-  // Variants for animations
   const fadeUp = {
     hidden: { opacity: 0, y: 40 },
     show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
@@ -22,7 +21,6 @@ export default function Home() {
     <main className="bg-background text-foreground font-sans">
       <Lnavbar />
 
-      {/* Hero Section */}
       <section className="relative isolate overflow-hidden bg-gradient-to-br from-primary/10 via-background to-muted/40 py-28 sm:py-40">
         <div
           className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent blur-3xl"
@@ -69,7 +67,6 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Features */}
       <section className="py-24 bg-muted/20">
         <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
@@ -108,7 +105,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Templates */}
       <section className="py-28 bg-background max-w-6xl mx-auto px-4 text-center">
         <motion.h2
           className="text-4xl md:text-5xl font-bold mb-6"
@@ -150,7 +146,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA */}
       <motion.section
         className="relative py-28 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-center px-4"
         initial={{ opacity: 0 }}
@@ -175,7 +170,6 @@ export default function Home() {
         </Button>
       </motion.section>
 
-      {/* Footer */}
       <Footer />
     </main>
   )
