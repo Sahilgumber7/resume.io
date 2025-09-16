@@ -11,10 +11,6 @@ export default function ResumeUploadPage() {
     if (!file) return;
     setLoading(true);
 
-
-
-    
-
     const formData = new FormData();
     formData.append("resume", file);
 
