@@ -1,4 +1,4 @@
-// src/components/templates/TemplateATS.js
+
 import React from "react";
 import PersonalDetailPreview from "../preview/PersonalDetailPreview";
 import SummaryPreview from "../preview/SummaryPreview";
@@ -7,7 +7,7 @@ import EducationalPreview from "../preview/EducationalPreview";
 import SkillsPreview from "../preview/SkillsPreview";
 import ProjectPreview from "../preview/ProjectPreview";
 
-function Template2({ resumeInfo }) {
+export default function Template2({ resumeInfo }) {
   if (!resumeInfo) return null;
 
   return (
@@ -70,4 +70,3 @@ function Template2({ resumeInfo }) {
   );
 }
 
-export default Template2;

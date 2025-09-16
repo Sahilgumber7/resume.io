@@ -7,7 +7,7 @@ import EducationalPreview from "@/components/preview/EducationalPreview";
 import SkillsPreview from "@/components/preview/SkillsPreview";
 import ProjectPreview from "@/components/preview/ProjectPreview";
 
-function Template1({ resumeInfo }) {
+export default function Template1({ resumeInfo }) {
   if (!resumeInfo) return null;
 
   return (
@@ -33,4 +33,3 @@ function Template1({ resumeInfo }) {
   );
 }
 
-export default Template1;
