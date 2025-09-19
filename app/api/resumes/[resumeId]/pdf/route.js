@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server'
 import { connectDB } from '@/lib/db'
 import Resume from '@/models/resume'
 import { renderToBuffer } from '@react-pdf/renderer'
-import ResumePDFDocument from '@/components/pdf/ResumePDFDocument'
-
+import ResumePDF from '../../../../../components/ResumePDF'
 // GET /api/resumes/:resumeId/pdf
 export async function GET(req, { params }) {
   try {
@@ -18,10 +17,8 @@ export async function GET(req, { params }) {
     if (!resume) {
       return NextResponse.json({ error: 'Resume not found' }, { status: 404 })
     }
-
-    // Render PDF from React component
     const pdfBuffer = await renderToBuffer(
-      <ResumePDFDocument resume={resume} />
+      <ResumePDF resume={resume} />
     )
 
     return new NextResponse(pdfBuffer, {
