@@ -1,14 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
-  const formData = await req.formData();
+export async function POST(req: Request) {
+  try {
+    const formData = await req.formData();
+    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/parse`;
 
-  // Proxy to FastAPI backend
-  const res = await fetch("http://localhost:8000/parse", {
-    method: "POST",
-    body: formData,
-  });
+    const response = await fetch(backendUrl, {
+      method: "POST",
+      body: formData,
+    });
 
-  const data = await res.json();
-  return NextResponse.json(data);
+    const data = await response.json();
+    return NextResponse.json(data);
+  } catch (error: unknown) {
+    console.error("Parser API Error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
