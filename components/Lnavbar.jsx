@@ -88,6 +88,11 @@ export default function Lnavbar() {
           <Button variant="ghost" size="sm" onClick={handleBuilderClick}>
             Builder
           </Button>
+          <Link href="/ATS-tester">
+          <Button variant="ghost" size="sm">
+            Score Matcher
+          </Button>
+        </Link>
           <SignedIn>
             <Link href="/dashboard">
               <Button variant="ghost" size="sm">Dashboard</Button>
