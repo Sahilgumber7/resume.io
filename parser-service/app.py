@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from parser import pdf_parser, docx_parser
 import os, tempfile
 from groq import Groq
-from dotenv import load_dotenv
 from PyPDF2 import PdfReader
 from docx import Document
 import re
@@ -14,8 +13,7 @@ from nltk.corpus import stopwords
 from fastapi import FastAPI, Form
 from fastapi.responses import JSONResponse
 from sentence_transformers import SentenceTransformer, util
-load_dotenv("../.env.local")
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+GROQ_API_KEY = "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"
 client = Groq(api_key=GROQ_API_KEY)
 model = SentenceTransformer('BAAI/bge-large-en')
 nltk.download('punkt_tab')
