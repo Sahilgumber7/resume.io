@@ -4,12 +4,15 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Lnavbar from "@/components/Lnavbar";
 import Result from "./result";
+import { useRouter } from "next/navigation";
 
 export default function ParserPage() {
   const [file, setFile] = useState(null);
   const [parsed, setParsed] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const fadeUp = {
     hidden: { opacity: 0, y: 30 },
@@ -40,6 +43,112 @@ export default function ParserPage() {
       setLoading(false);
     }
   };
+
+  const handleSaveAndOpen = async () => {
+  if (!parsed) return;
+  setSaving(true);
+
+  try {
+    // Transform parsed output to match Resume model structure
+    const formattedResume = {
+      fullName: parsed.name || "",
+      email: parsed.email || "",
+      phone: parsed.phone || "",
+      title: parsed.jobTitle || "Untitled Resume",
+      themeColor: "#000000",
+      summary: parsed.summary || "",
+      education: [],
+      experience: [],
+      skills: [],
+      projects: [],
+    };
+
+    // 🧠 Map Education
+    if (parsed.sections?.education?.length) {
+      const edu = parsed.sections.education;
+      formattedResume.education.push({
+        degree: edu[2] || "",
+        universityName: edu[0] || "",
+        major: edu[2] || "",
+        startDate: edu[1] || "",
+        endDate: "",
+        description: edu.slice(4).join(" "),
+      });
+    }
+
+    // 🧠 Map Experience
+    if (parsed.sections?.experience?.length) {
+      const expArr = parsed.sections.experience;
+      const chunks = [];
+      let current = [];
+      expArr.forEach((line) => {
+        if (line.startsWith("•") && current.length) {
+          chunks.push([...current]);
+          current = [];
+        }
+        current.push(line);
+      });
+      if (current.length) chunks.push(current);
+
+      formattedResume.experience = chunks.map((chunk) => ({
+        title: chunk.find((l) => l.includes("Developer")) || "",
+        companyName: chunk.find((l) => l.includes(".com") || l.includes("PYOP")) || "",
+        city: chunk.find((l) => ["Delhi", "Bangalore", "Mumbai"].includes(l)) || "",
+        state: "",
+        startDate: chunk.find((l) => l.includes("–"))?.split("–")[0]?.trim() || "",
+        endDate: chunk.find((l) => l.includes("–"))?.split("–")[1]?.trim() || "",
+        worksummary: chunk.filter((l) => l.startsWith("•")).join(" "),
+      }));
+    }
+
+    // 🧠 Map Skills
+    if (parsed.sections?.skills?.length) {
+      formattedResume.skills = parsed.sections.skills
+        .filter((line) => line && !line.includes("Social"))
+        .map((line) => ({ name: line, rating: 4 }));
+    }
+
+    // 🧠 Map Projects
+    if (parsed.sections?.projects?.length) {
+      const projLines = parsed.sections.projects;
+      let projects = [];
+      let current = [];
+
+      projLines.forEach((line) => {
+        if (line.includes("|") && current.length) {
+          projects.push([...current]);
+          current = [];
+        }
+        current.push(line);
+      });
+      if (current.length) projects.push(current);
+
+      formattedResume.projects = projects.map((proj) => ({
+        title: proj[0] || "",
+        description: proj.slice(1).join(" "),
+      }));
+    }
+
+    // Save formatted resume to database
+    const res = await fetch("/api/resumes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formattedResume),
+    });
+
+    if (!res.ok) throw new Error("Failed to save resume");
+    const savedResume = await res.json();
+
+    // Redirect to builder page
+    router.push(`/builder/${savedResume._id}`);
+  } catch (err) {
+    console.error(err);
+    setError("❌ Failed to save and open in builder.");
+  } finally {
+    setSaving(false);
+  }
+};
+
 
   return (
     <>
@@ -90,7 +199,9 @@ export default function ParserPage() {
                   />
                 </svg>
                 <p className="font-medium">Click or drag to upload resume</p>
-                <p className="text-sm text-gray-500 mt-1">PDF or DOCX up to 5MB</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  PDF or DOCX up to 5MB
+                </p>
               </div>
               <input
                 id="file-upload"
@@ -124,8 +235,18 @@ export default function ParserPage() {
           </motion.div>
 
           {parsed && !loading && (
-            <motion.div variants={fadeUp}>
+            <motion.div variants={fadeUp} className="space-y-6">
               <Result data={parsed} />
+
+              <div className="flex justify-center">
+                <Button
+                  onClick={handleSaveAndOpen}
+                  disabled={saving}
+                  className="px-10 py-3 text-lg font-semibold shadow-md hover:scale-105 transition bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {saving ? "Saving..." : "Open in Builder"}
+                </Button>
+              </div>
             </motion.div>
           )}
         </motion.div>
