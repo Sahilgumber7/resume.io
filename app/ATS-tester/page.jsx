@@ -108,7 +108,10 @@ setAiData(aiJson.ai_analysis);
           type="file"
           accept=".pdf,.docx"
           onChange={(e) => setResumeFile(e.target.files[0])}
-          className="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-gray-50"
+          className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4
+              file:rounded-full file:border-0 file:text-sm file:font-semibold
+              file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100
+              mb-4"
         />
       </div>
 
