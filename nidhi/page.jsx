@@ -144,30 +144,24 @@ setAiData(aiJson.ai_analysis);
 
               {/* Sections Detected */}
               <div>
-                <h3 className="font-semibold text-white mb-1">
+                <h3 className="font-semibold text-gray-700 mb-1">
                   Sections Detected
                 </h3>
-                <pre className="bg-gray-100 text-black p-3 rounded text-sm">
+                <pre className="bg-gray-100 p-3 rounded text-sm">
                   {JSON.stringify(parsed.sections_detected, null, 2)}
-                </pre>
-              </div>
-                {/* Semantics Detected */}
-              <div>
-                <h3 className="font-semibold text-white mb-1">
-                  Semantics Detected
-                </h3>
-                <pre className="bg-gray-100 text-black p-3 rounded text-sm">
-                  {JSON.stringify(parsed.semantic_similarity, null, 2)}
                 </pre>
               </div>
 
               {/* Keyword Match */}
               {parsed.keyword_match && (
                 <div>
-                  <h3 className="font-semibold text-white mb-1">
+                  <h3 className="font-semibold text-gray-700 mb-1">
                     Keyword Match
                   </h3>
-                  <pre className="bg-gray-100 text-black p-3 rounded text-sm">
+                  <p className="text-sm mb-1">
+                    Match %: {parsed.keyword_match.match_percent || 0}%
+                  </p>
+                  <pre className="bg-gray-100 p-3 rounded text-sm">
                     {JSON.stringify(
                       parsed.keyword_match.matched_keywords || [],
                       null,
@@ -180,7 +174,7 @@ setAiData(aiJson.ai_analysis);
               {/* Suggestions */}
               {parsed.improvements && (
                 <div>
-                  <h3 className="font-semibold text-white mb-1">
+                  <h3 className="font-semibold text-gray-700 mb-1">
                     Suggestions
                   </h3>
                   <ul className="list-disc pl-6 text-sm space-y-1">
