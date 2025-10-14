@@ -221,14 +221,3 @@ async def analyze_resume_endpoint(
     ai_output = generate_response(prompt, "You are an expert ATS resume analyzer.", temperature, max_tokens)
 
     return JSONResponse(content={"ai_analysis": ai_output})
-
-routes": {
-            "/parse": "Parse PDF or DOCX resume into structured JSON.",
-            "/ats-test": "Analyze resume using Groq ATS model.",
-        },
-    }
-routes": {
-            "/parse": "Parse PDF or DOCX resume into structured JSON.",
-            "/ats-test": "Analyze resume using Groq ATS model.",
-        },
-    }
