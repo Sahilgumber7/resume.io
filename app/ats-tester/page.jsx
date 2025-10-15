@@ -75,17 +75,17 @@ export default function ResumeATSTester() {
   return (
     <>
       <Lnavbar />
-      <section className="relative min-h-screen bg-gradient-to-br from-primary/10 via-background to-muted/40 flex items-center justify-center py-20 px-6">
+      <section className="relative min-h-screen bg-gradient-to-br from-primary/10 via-background to-muted/40 dark:from-gray-900 dark:via-gray-950 dark:to-black flex items-center justify-center py-20 px-6 transition-colors duration-300">
         <motion.div
-          className="w-full max-w-3xl mx-auto bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-10 space-y-8 border border-gray-100"
+          className="w-full max-w-3xl mx-auto bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg rounded-2xl shadow-xl p-10 space-y-8 border border-gray-100 dark:border-gray-800"
           initial="hidden"
           animate="show"
           variants={fadeUp}
         >
-          <motion.h1 className="text-4xl sm:text-5xl font-bold text-center text-gray-800" variants={fadeUp}>
+          <motion.h1 className="text-4xl sm:text-5xl font-bold text-center text-gray-800 dark:text-gray-100" variants={fadeUp}>
             Resume ATS + AI Analyzer
           </motion.h1>
-          <motion.p className="text-center text-gray-600 text-lg" variants={fadeUp}>
+          <motion.p className="text-center text-gray-600 dark:text-gray-400 text-lg" variants={fadeUp}>
             Upload your <span className="font-semibold text-primary">PDF</span> or{" "}
             <span className="font-semibold text-primary">DOCX</span> resume and paste the job
             description to evaluate ATS compatibility and get AI insights.
@@ -94,10 +94,10 @@ export default function ResumeATSTester() {
           <motion.div className="flex flex-col space-y-6" variants={fadeUp}>
             {/* Job Description */}
             <div>
-              <label className="block mb-2 font-semibold">Job Description</label>
+              <label className="block mb-2 font-semibold dark:text-gray-300">Job Description</label>
               <textarea
                 placeholder="Paste job description here..."
-                className="w-full p-4 border rounded-xl h-36 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                className="w-full p-4 border rounded-xl h-36 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
                 value={jobDesc}
                 onChange={(e) => setJobDesc(e.target.value)}
               />
@@ -106,9 +106,9 @@ export default function ResumeATSTester() {
             {/* Resume Upload */}
             <label
               htmlFor="resume-upload"
-              className="w-full flex flex-col items-center justify-center h-44 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:bg-gray-100 cursor-pointer transition"
+              className="w-full flex flex-col items-center justify-center h-44 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition"
             >
-              <div className="text-center text-gray-600">
+              <div className="text-center text-gray-600 dark:text-gray-300">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="w-12 h-12 mx-auto text-blue-500 mb-2"
@@ -136,7 +136,7 @@ export default function ResumeATSTester() {
             </label>
 
             {resumeFile && (
-              <p className="text-sm text-blue-700 font-medium">✅ Selected: {resumeFile.name}</p>
+              <p className="text-sm text-blue-700 dark:text-blue-400 font-medium">✅ Selected: {resumeFile.name}</p>
             )}
 
             {/* Analyze Button */}
@@ -150,7 +150,7 @@ export default function ResumeATSTester() {
             </Button>
 
             {error && (
-              <div className="text-red-600 bg-red-50 border border-red-100 p-3 rounded-lg text-sm">
+              <div className="text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800 p-3 rounded-lg text-sm">
                 {error}
               </div>
             )}
@@ -160,8 +160,8 @@ export default function ResumeATSTester() {
           {parsed && !loading && (
             <motion.div className="space-y-6" variants={fadeUp}>
               {/* ATS Score */}
-              <div className="p-4 bg-gray-50 rounded-xl shadow-sm border border-gray-200">
-                <h2 className="text-xl font-bold text-blue-700">
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-blue-700 dark:text-blue-400">
                   ATS Score: {parsed.ats_score ?? "N/A"}%
                 </h2>
               </div>
@@ -169,8 +169,8 @@ export default function ResumeATSTester() {
               {/* Sections Detected */}
               {parsed.sections_detected && typeof parsed.sections_detected === "object" && (
                 <div>
-                  <h3 className="font-semibold mb-1 text-gray-700">Sections Detected</h3>
-                  <pre className="bg-gray-100 text-black p-3 rounded text-sm">
+                  <h3 className="font-semibold mb-1 text-gray-700 dark:text-gray-300">Sections Detected</h3>
+                  <pre className="bg-gray-100 dark:bg-gray-800 text-black dark:text-gray-100 p-3 rounded text-sm">
                     {JSON.stringify(parsed.sections_detected, null, 2)}
                   </pre>
                 </div>
@@ -179,8 +179,8 @@ export default function ResumeATSTester() {
               {/* Semantic Similarity */}
               {parsed.semantic_similarity && typeof parsed.semantic_similarity === "object" && (
                 <div>
-                  <h3 className="font-semibold mb-1 text-gray-700">Semantic Similarity</h3>
-                  <pre className="bg-gray-100 text-black p-3 rounded text-sm">
+                  <h3 className="font-semibold mb-1 text-gray-700 dark:text-gray-300">Semantic Similarity</h3>
+                  <pre className="bg-gray-100 dark:bg-gray-800 text-black dark:text-gray-100 p-3 rounded text-sm">
                     {JSON.stringify(parsed.semantic_similarity, null, 2)}
                   </pre>
                 </div>
@@ -191,8 +191,8 @@ export default function ResumeATSTester() {
                 Array.isArray(parsed.keyword_match.matched_keywords) &&
                 parsed.keyword_match.matched_keywords.length > 0 && (
                   <div>
-                    <h3 className="font-semibold mb-1 text-gray-700">Keyword Match</h3>
-                    <pre className="bg-gray-100 text-black p-3 rounded text-sm">
+                    <h3 className="font-semibold mb-1 text-gray-700 dark:text-gray-300">Keyword Match</h3>
+                    <pre className="bg-gray-100 dark:bg-gray-800 text-black dark:text-gray-100 p-3 rounded text-sm">
                       {JSON.stringify(parsed.keyword_match.matched_keywords, null, 2)}
                     </pre>
                   </div>
@@ -201,7 +201,7 @@ export default function ResumeATSTester() {
               {/* Suggestions */}
               {Array.isArray(parsed.improvements) && parsed.improvements.length > 0 && (
                 <div>
-                  <h3 className="font-semibold mb-1 text-gray-700">Suggestions</h3>
+                  <h3 className="font-semibold mb-1 text-gray-700 dark:text-gray-300">Suggestions</h3>
                   <ul className="list-disc pl-6 text-sm space-y-1">
                     {parsed.improvements.map((s, i) => (
                       <li key={i}>{s}</li>
@@ -212,9 +212,9 @@ export default function ResumeATSTester() {
 
               {/* AI Analysis */}
               {aiData && (
-                <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-                  <h3 className="font-semibold text-blue-800 mb-2">AI Analysis</h3>
-                  <pre className="whitespace-pre-wrap text-sm text-gray-800">{aiData}</pre>
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <h3 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">AI Analysis</h3>
+                  <pre className="whitespace-pre-wrap text-sm text-gray-800 dark:text-gray-100">{aiData}</pre>
                 </div>
               )}
             </motion.div>
