@@ -80,19 +80,20 @@ export default function Lnavbar() {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-4">
-          <Link href="/ats-tester">
-          <Button variant="ghost" size="sm">
-            ATS Tester
+          <Button variant="ghost" size="sm" onClick={handleBuilderClick}>
+            Builder
           </Button>
-        </Link>
           <Link href="/parser">
         <Button variant="ghost" size="sm">
             Parser
           </Button>
         </Link>
-          <Button variant="ghost" size="sm" onClick={handleBuilderClick}>
-            Builder
+        <Link href="/ats-tester">
+          <Button variant="ghost" size="sm">
+            ATS Score Matcher
           </Button>
+        </Link>
+          
           <SignedIn>
             <Link href="/dashboard">
               <Button variant="ghost" size="sm">Dashboard</Button>
