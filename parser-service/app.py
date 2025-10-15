@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from parser import pdf_parser, docx_parser
 import os, tempfile
 from groq import Groq
+from dotenv import load_dotenv
 from PyPDF2 import PdfReader
 from docx import Document
 import re
@@ -13,7 +14,10 @@ from nltk.corpus import stopwords
 from fastapi import FastAPI, Form
 from fastapi.responses import JSONResponse
 from sentence_transformers import SentenceTransformer, util
-GROQ_API_KEY = "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"
+load_dotenv("../.env.local")
+
+
+GROQ_API_KEY='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'
 client = Groq(api_key=GROQ_API_KEY)
 model = SentenceTransformer('BAAI/bge-large-en')
 nltk.download('punkt_tab')
@@ -200,22 +204,55 @@ async def analyze_resume_endpoint(
     job_description: str = Form(...),
     with_job_description: bool = Form(True),
     temperature: float = Form(0.3),
-    max_tokens: int = Form(500)
+    max_tokens: int = Form(1500)
 ):
     
 
-    if with_job_description and job_description:
-        prompt = f"""
-        Please analyze the following resume in the context of the job description provided...
-        Job Description: {job_description}
-        Resume: {resume_text} and only have text no markers with sections like resume analysis
-        """
+    if with_job_description and job_description.strip():
+           prompt = f"""
+You are an expert ATS (Applicant Tracking System) evaluator.
+Analyze the following resume in the context of the provided job description.
+Your analysis should cover:
+- Match percentage (semantic and keyword-based)
+- Missing or weak keywords
+- Summary 
+- Actionable recommendations for improvement 
+
+Job Description:
+{job_description}
+
+Resume:
+{resume_text}
+"""
     else:
         prompt = f"""
-        Please analyze the following resume without a specific job description...
-        Resume: {resume_text}
-        """
+You are an expert ATS resume evaluator.
+Analyze the following resume without a specific job description.
+Your analysis should cover:
+- Overall resume quality score (0–10)
+- Evaluation based on Impact, Clarity, Structure, and Skills Relevance
+- 2–3 line summary
+- 3–4 actionable improvement points
 
-    ai_output = generate_response(prompt, "You are an expert ATS resume analyzer.", temperature, max_tokens)
+Resume:
+{resume_text}
+"""
 
-    return JSONResponse(content={"ai_analysis": ai_output})
+    # ai_output = generate_response(prompt, "You are an expert ATS resume analyzer.", temperature, max_tokens)
+
+    # return JSONResponse(content={"ai_analysis": ai_output})
+    ai_output = generate_response(
+        message=prompt,
+        system_prompt="You are an expert ATS resume analyzer. Respond only in plain text, without section headers or markdown markers.",
+        temperature=temperature,
+        max_tokens=max_tokens
+    )
+
+    # Step 4: Return structured JSON response
+    return JSONResponse(content={
+        "ai_analysis": ai_output,
+        "input_summary": {
+            "with_job_description": with_job_description,
+            "job_description_present": bool(job_description.strip()),
+        }
+    })
