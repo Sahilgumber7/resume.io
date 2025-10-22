@@ -217,14 +217,14 @@
 //               )}
 
 //               {/* AI Analysis */}
-              // {aiData && (
-              //   <div className="p-4 bg-primary/10 dark:bg-primary/20 rounded-xl border border-primary/20 dark:border-primary/40">
-              //     <h3 className="font-semibold text-primary dark:text-primary/80 mb-2">AI Analysis</h3>
-              //     <pre className="whitespace-pre-wrap text-sm text-gray-600 dark:text-[#f2f2f3]">{aiData}</pre>
-              //   </div>
-              // )}
-           // </motion.div>
-        //  )}
+// {aiData && (
+//   <div className="p-4 bg-primary/10 dark:bg-primary/20 rounded-xl border border-primary/20 dark:border-primary/40">
+//     <h3 className="font-semibold text-primary dark:text-primary/80 mb-2">AI Analysis</h3>
+//     <pre className="whitespace-pre-wrap text-sm text-gray-600 dark:text-[#f2f2f3]">{aiData}</pre>
+//   </div>
+// )}
+// </motion.div>
+//  )}
 //         </motion.div>
 //       </section>
 //     </>
@@ -249,84 +249,144 @@ export default function ResumeATSTester() {
     show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
   };
 
-const handleUpload = async () => {
-  if (!resumeFiles.length || !jobDesc.trim()) {
-    setError("⚠️ Please upload at least one resume and paste a job description.");
-    return;
-  }
-
-  setLoading(true);
-  setParsedResults([]);
-  setAiData({});
-  setError("");
-
-  try {
-    const resultsArray = [];
-    const aiResults = {};
-
-    // Loop through each resume separately
-    for (const resume of resumeFiles) {
-      // ----------------------
-      // Step 1: Parse resume
-      // ----------------------
-      const parseFormData = new FormData();
-      parseFormData.append("resume", resume);
-
-      const parseRes = await fetch("/api/parser", { method: "POST", body: parseFormData });
-      if (!parseRes.ok) throw new Error(`Failed to parse resume: ${resume.name}`);
-      const parsedResume = await parseRes.json();
-
-      // Extract plain text from parsed sections
-      let resumeText = "";
-      if (parsedResume.sections) {
-        for (const sec of Object.values(parsedResume.sections)) {
-          if (Array.isArray(sec)) resumeText += sec.join("\n") + "\n";
-          else if (typeof sec === "string") resumeText += sec + "\n";
-        }
-      }
-
-      // ----------------------
-      // Step 2: ATS analysis for this resume only
-      // ----------------------
-      const atsFormData = new FormData();
-      atsFormData.append("resumes", resume); // send one resume at a time
-      atsFormData.append("job_desc", jobDesc);
-
-      const atsRes = await fetch("/api/ats-test", { method: "POST", body: atsFormData });
-      if (!atsRes.ok) throw new Error(`ATS analysis failed for: ${resume.name}`);
-      const atsData = await atsRes.json();
-
-      resultsArray.push({ ...atsData, filename: resume.name });
-
-      // ----------------------
-      // Step 3: AI analysis
-      // ----------------------
-      const aiFormData = new FormData();
-      aiFormData.append("resume_text", resumeText);
-      aiFormData.append("job_description", jobDesc);
-      aiFormData.append("with_job_description", "true");
-      aiFormData.append("temperature", "0.3");
-      aiFormData.append("max_tokens", "500");
-
-      const aiResponse = await fetch("/api/analyze-resume", { method: "POST", body: aiFormData });
-      if (!aiResponse.ok) throw new Error(`AI analysis failed for: ${resume.name}`);
-      const aiJson = await aiResponse.json();
-
-      aiResults[resume.name] = aiJson.ai_analysis || "No analysis text received";
+  const handleUpload = async () => {
+    if (!resumeFiles.length || !jobDesc.trim()) {
+      setError(
+        "⚠️ Please upload at least one resume and paste a job description."
+      );
+      return;
     }
 
-    setParsedResults(resultsArray);
-    setAiData(aiResults);
-  } catch (err) {
-    console.error(err);
-    setError("❌ Something went wrong while processing.");
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    setParsedResults([]);
+    setAiData({});
+    setError("");
 
+    try {
+      const resultsArray = [];
+      const aiResults = {};
 
+      // Loop through each resume separately
+      for (const resume of resumeFiles) {
+        // ----------------------
+        // Step 1: Parse resume
+        // ----------------------
+        const parseFormData = new FormData();
+        parseFormData.append("resume", resume);
 
+        const parseRes = await fetch("/api/parser", {
+          method: "POST",
+          body: parseFormData,
+        });
+        if (!parseRes.ok)
+          throw new Error(`Failed to parse resume: ${resume.name}`);
+        const parsedResume = await parseRes.json();
+
+        // Extract plain text from parsed sections
+        let resumeText = "";
+        if (parsedResume.sections) {
+          for (const sec of Object.values(parsedResume.sections)) {
+            if (Array.isArray(sec)) resumeText += sec.join("\n") + "\n";
+            else if (typeof sec === "string") resumeText += sec + "\n";
+          }
+        }
+
+        // ----------------------
+        // Step 2: ATS analysis for this resume only
+        // ----------------------
+        const atsFormData = new FormData();
+        atsFormData.append("resumes", resume); // send one resume at a time
+        atsFormData.append("job_desc", jobDesc);
+
+        const atsRes = await fetch("/api/ats-test", {
+          method: "POST",
+          body: atsFormData,
+        });
+        if (!atsRes.ok)
+          throw new Error(`ATS analysis failed for: ${resume.name}`);
+        const atsData = await atsRes.json();
+
+        resultsArray.push({ ...atsData, filename: resume.name });
+
+        // ----------------------
+        // Step 3: AI analysis
+        // ----------------------
+        const aiFormData = new FormData();
+        aiFormData.append("resume_text", resumeText);
+        aiFormData.append("job_description", jobDesc);
+        aiFormData.append("with_job_description", "true");
+        aiFormData.append("temperature", "0.3");
+        aiFormData.append("max_tokens", "500");
+
+        const aiResponse = await fetch("/api/analyze-resume", {
+          method: "POST",
+          body: aiFormData,
+        });
+        if (!aiResponse.ok)
+          throw new Error(`AI analysis failed for: ${resume.name}`);
+        const aiJson = await aiResponse.json();
+
+        aiResults[resume.name] =
+          aiJson.ai_analysis || "No analysis text received";
+      }
+
+      setParsedResults(resultsArray);
+      setAiData(aiResults);
+    } catch (err) {
+      console.error(err);
+      setError("❌ Something went wrong while processing.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownloadCSV = () => {
+    if (!parsedResults.length) return;
+
+    const rows = parsedResults.map((res) => {
+      const aiAnalysis = aiData[res.filename] || "";
+      const sectionsDetected = res.sections_detected
+        ? JSON.stringify(res.sections_detected)
+        : "";
+      const matchedKeywords = res.keyword_match?.matched_keywords
+        ? res.keyword_match.matched_keywords.join(", ")
+        : "";
+
+      return {
+        Filename: res.filename,
+        ATS_Score: res.ats_score ?? "",
+        Semantic_Similarity: res.semantic_similarity ?? "",
+        Keyword_Match_Percent: res.keyword_match?.match_percent ?? "",
+        Matched_Keywords: matchedKeywords,
+        Sections_Detected: sectionsDetected,
+        AI_Analysis:
+          typeof aiAnalysis === "string"
+            ? aiAnalysis
+            : JSON.stringify(aiAnalysis),
+        Suggestions: Array.isArray(res.improvements)
+          ? res.improvements.join(" | ")
+          : "",
+      };
+    });
+
+    // Convert to CSV string
+    const headers = Object.keys(rows[0]).join(",");
+    const csvRows = rows.map((row) =>
+      Object.values(row)
+        .map((val) => `"${String(val).replace(/"/g, '""')}"`) // escape quotes
+        .join(",")
+    );
+    const csvContent = [headers, ...csvRows].join("\r\n");
+
+    // Trigger download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "resume_analysis.csv");
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <>
@@ -348,9 +408,11 @@ const handleUpload = async () => {
             className="text-center text-gray-600 dark:text-[#9a9a9e] text-lg"
             variants={fadeUp}
           >
-            Upload one or more <span className="font-semibold text-primary">PDF</span> or{" "}
-            <span className="font-semibold text-primary">DOCX</span> resumes and paste the job
-            description to evaluate ATS compatibility and get AI feedback.
+            Upload one or more{" "}
+            <span className="font-semibold text-primary">PDF</span> or{" "}
+            <span className="font-semibold text-primary">DOCX</span> resumes and
+            paste the job description to evaluate ATS compatibility and get AI
+            feedback.
           </motion.p>
 
           <motion.div className="flex flex-col space-y-6" variants={fadeUp}>
@@ -399,18 +461,19 @@ const handleUpload = async () => {
                 accept=".pdf,.docx"
                 className="hidden"
                 onChange={(e) => {
-    if (e.target.files) setResumeFiles(Array.from(e.target.files));
-  }}
+                  if (e.target.files)
+                    setResumeFiles(Array.from(e.target.files));
+                }}
               />
             </label>
 
             {resumeFiles.length > 0 && (
-  <ul className="text-sm text-blue-700 dark:text-blue-400 font-medium space-y-1">
-    {resumeFiles.map((file, idx) => (
-      <li key={idx}>✅ {file.name}</li>
-    ))}
-  </ul>
-)}
+              <ul className="text-sm text-blue-700 dark:text-blue-400 font-medium space-y-1">
+                {resumeFiles.map((file, idx) => (
+                  <li key={idx}>✅ {file.name}</li>
+                ))}
+              </ul>
+            )}
 
             {/* Analyze Button */}
             <Button
@@ -421,6 +484,15 @@ const handleUpload = async () => {
             >
               {loading ? "Analyzing..." : "Analyze Resume(s)"}
             </Button>
+            {parsedResults.length > 0 && (
+              <Button
+                size="lg"
+                onClick={handleDownloadCSV}
+                className="px-8 text-lg font-semibold shadow-md hover:scale-105 transition mt-4"
+              >
+                Download CSV
+              </Button>
+            )}
 
             {error && (
               <div className="text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800 p-3 rounded-lg text-sm">
@@ -449,49 +521,56 @@ const handleUpload = async () => {
                   </span>
                 </p>
                 <p>
-  <strong> Section Detected: <br/></strong>{" "}
-  {typeof parsed.sections_detected === "string"
-    ? parsed.sections_detected
-    : JSON.stringify(parsed.sections_detected, null, 2)}
-</p>
-
-                <p>
-                  <strong>Semantic Similarity:</strong> {parsed.semantic_similarity}%
+                  <strong>
+                    {" "}
+                    Section Detected: <br />
+                  </strong>{" "}
+                  {typeof parsed.sections_detected === "string"
+                    ? parsed.sections_detected
+                    : JSON.stringify(parsed.sections_detected, null, 2)}
                 </p>
 
-                
-<p>
-  <strong>Keyword Match:</strong>{" "}
-  {parsed.keyword_match?.match_percent ?? 0}%
-  <br />
-  {parsed.keyword_match?.matched_keywords &&
-    (Array.isArray(parsed.keyword_match.matched_keywords)
-      ? parsed.keyword_match.matched_keywords.join(", ")
-      : JSON.stringify(parsed.keyword_match.matched_keywords))}
-</p>
+                <p>
+                  <strong>Semantic Similarity:</strong>{" "}
+                  {parsed.semantic_similarity}%
+                </p>
 
-                {Array.isArray(parsed.improvements) && parsed.improvements.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold mb-1 text-gray-700 dark:text-[#f2f2f3]">Suggestions</h3>
-                    <ul className="list-disc pl-6 text-sm space-y-1">
-                      {parsed.improvements.map((s, i) => (
-                        <li key={i}>{s}</li>
-                      ))}
-                    </ul>
+                <p>
+                  <strong>Keyword Match:</strong>{" "}
+                  {parsed.keyword_match?.match_percent ?? 0}%
+                  <br />
+                  {parsed.keyword_match?.matched_keywords &&
+                    (Array.isArray(parsed.keyword_match.matched_keywords)
+                      ? parsed.keyword_match.matched_keywords.join(", ")
+                      : JSON.stringify(parsed.keyword_match.matched_keywords))}
+                </p>
+
+                {Array.isArray(parsed.improvements) &&
+                  parsed.improvements.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold mb-1 text-gray-700 dark:text-[#f2f2f3]">
+                        Suggestions
+                      </h3>
+                      <ul className="list-disc pl-6 text-sm space-y-1">
+                        {parsed.improvements.map((s, i) => (
+                          <li key={i}>{s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                {aiData[parsed.filename] && (
+                  <div className="p-4 bg-primary/10 dark:bg-primary/20 rounded-xl border border-primary/20 dark:border-primary/40 mt-3">
+                    <h3 className="font-semibold text-primary dark:text-primary/80 mb-2">
+                      AI Analysis
+                    </h3>
+                    <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-[#f2f2f3]">
+                      {typeof aiData[parsed.filename] === "string"
+                        ? aiData[parsed.filename]
+                        : JSON.stringify(aiData[parsed.filename], null, 2)}
+                    </pre>
                   </div>
                 )}
-
-    {aiData[parsed.filename] && (
-      <div className="p-4 bg-primary/10 dark:bg-primary/20 rounded-xl border border-primary/20 dark:border-primary/40 mt-3">
-        <h3 className="font-semibold text-primary dark:text-primary/80 mb-2">AI Analysis</h3>
-        <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-[#f2f2f3]">
-          {typeof aiData[parsed.filename] === "string"
-            ? aiData[parsed.filename]
-            : JSON.stringify(aiData[parsed.filename], null, 2)}
-        </pre>
-      </div>
-    )}
-
               </motion.div>
             ))}
         </motion.div>
@@ -499,4 +578,3 @@ const handleUpload = async () => {
     </>
   );
 }
-
