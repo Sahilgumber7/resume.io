@@ -62,123 +62,288 @@ async def parse_resume(resume: UploadFile = File(...)):
 # ATS Tester
 # ---------------------------
 @app.post("/ats-test")
-async def ats_test(resume: UploadFile = File(...), job_desc: str = Form(...)):
-    # Step 1: Parse resume
-    contents = await resume.read()
-    suffix = os.path.splitext(resume.filename)[1].lower()
-    if suffix == ".pdf":
-        from PyPDF2 import PdfReader
-        reader = PdfReader(io.BytesIO(contents))
-        resume_text = "".join([page.extract_text() or "" for page in reader.pages]).lower()
-    elif suffix == ".docx":
-        from docx import Document
-        doc = Document(io.BytesIO(contents))
-        resume_text = "\n".join([para.text for para in doc.paragraphs]).lower()
-    else:
-        return {"error": "Unsupported file format"}
-# Step 2: Prepare job tokens
-    # --------------------------
-    stop_words = {
-    "a", "an", "the", "in", "on", "and", "of", "to", "for", "from", "with",
-    "at", "by", "this", "that", "is", "it", "as", "are", "was", "be", "or"
-    }
+# async def ats_test(resume: UploadFile = File(...), job_desc: str = Form(...)):
+#     # Step 1: Parse resume
+#     contents = await resume.read()
+#     suffix = os.path.splitext(resume.filename)[1].lower()
+#     if suffix == ".pdf":
+#         from PyPDF2 import PdfReader
+#         reader = PdfReader(io.BytesIO(contents))
+#         resume_text = "".join([page.extract_text() or "" for page in reader.pages]).lower()
+#     elif suffix == ".docx":
+#         from docx import Document
+#         doc = Document(io.BytesIO(contents))
+#         resume_text = "\n".join([para.text for para in doc.paragraphs]).lower()
+#     else:
+#         return {"error": "Unsupported file format"}
+
+
+# async def ats_test(resumes: list[UploadFile] = File(...), job_desc: str = Form(...)):
+#     results = []
+
+#     # ensure job description lowercase
+#     job_desc = job_desc.lower()
+
+#     for resume in resumes:
+#         # read resume content
+#         contents = await resume.read()
+#         suffix = os.path.splitext(resume.filename)[1].lower()
+
+#         # extract text
+#         try:
+#             if suffix == ".pdf":
+#                 reader = PdfReader(io.BytesIO(contents))
+#                 resume_text = "".join([page.extract_text() or "" for page in reader.pages]).lower()
+#             elif suffix == ".docx":
+#                 doc = Document(io.BytesIO(contents))
+#                 resume_text = "\n".join([para.text for para in doc.paragraphs]).lower()
+#             else:
+#                 results.append({
+#                     "filename": resume.filename,
+#                     "error": "Unsupported file format (use .pdf or .docx)"
+#                 })
+#                 continue
+#         except Exception as e:
+#             results.append({
+#                 "filename": resume.filename,
+#                 "error": f"Error reading file: {str(e)}"
+#             })
+#             continue
+# # Step 2: Prepare job tokens
+#     # --------------------------
+#     stop_words = {
+#     "a", "an", "the", "in", "on", "and", "of", "to", "for", "from", "with",
+#     "at", "by", "this", "that", "is", "it", "as", "are", "was", "be", "or"
+#     }
     
-    job_tokens = {w for w in re.findall(r"\b\w+\b", job_desc.lower()) if w not in stop_words and len(w) > 2}
-    resume_tokens = {w for w in re.findall(r"\b\w+\b", resume_text.lower()) if w not in stop_words and len(w) > 2}
-    matched = resume_tokens & job_tokens
+#     job_tokens = {w for w in re.findall(r"\b\w+\b", job_desc.lower()) if w not in stop_words and len(w) > 2}
+#     resume_tokens = {w for w in re.findall(r"\b\w+\b", resume_text.lower()) if w not in stop_words and len(w) > 2}
+#     matched = resume_tokens & job_tokens
 
 
-    # Step 2: Section detection
-    ats_sections = {
-    "summary": ["summary", "profile", "overview", "professional summary"],
-    "objective": ["objective", "career objective"],
-    "experience": ["experience", "work experience", "employment", "professional experience"],
-    "education": ["education", "qualifications", "academics", "academic background"],
-    "skills": ["skills", "technical skills", "expertise", "competencies"],
-    "projects": ["projects", "work samples", "portfolio", "personal projects"],
-    "certifications": ["certifications", "licenses", "achievements", "awards"]
-    }
+#     # Step 2: Section detection
+#     ats_sections = {
+#     "summary": ["summary", "profile", "overview", "professional summary"],
+#     "objective": ["objective", "career objective"],
+#     "experience": ["experience", "work experience", "employment", "professional experience"],
+#     "education": ["education", "qualifications", "academics", "academic background"],
+#     "skills": ["skills", "technical skills", "expertise", "competencies"],
+#     "projects": ["projects", "work samples", "portfolio", "personal projects"],
+#     "certifications": ["certifications", "licenses", "achievements", "awards"]
+#     }
 
-    sections_detected = {sec: any(k.lower() in resume_text for k in kws) for sec, kws in ats_sections.items()}
+#     sections_detected = {sec: any(k.lower() in resume_text for k in kws) for sec, kws in ats_sections.items()}
 
 
-  # Step 4: Semantic similarity using Transformer
-    resume_sents = sent_tokenize(resume_text)
-    jd_sents = sent_tokenize(job_desc)
+#   # Step 4: Semantic similarity using Transformer
+#     resume_sents = sent_tokenize(resume_text)
+#     jd_sents = sent_tokenize(job_desc)
 
-    resume_embeddings = model.encode(resume_sents, convert_to_tensor=True)
-    jd_embeddings = model.encode(jd_sents, convert_to_tensor=True)
+#     resume_embeddings = model.encode(resume_sents, convert_to_tensor=True)
+#     jd_embeddings = model.encode(jd_sents, convert_to_tensor=True)
 
-# Compute cosine similarity between each JD sentence and each resume sentence
-    cos_scores = util.pytorch_cos_sim(jd_embeddings, resume_embeddings)
+# # Compute cosine similarity between each JD sentence and each resume sentence
+#     cos_scores = util.pytorch_cos_sim(jd_embeddings, resume_embeddings)
 
-# Take the max similarity for each JD sentence, then average
-    max_sim_per_jd = cos_scores.max(dim=1).values
-    semantic_similarity = max_sim_per_jd.mean().item()
+# # Take the max similarity for each JD sentence, then average
+#     max_sim_per_jd = cos_scores.max(dim=1).values
+#     semantic_similarity = max_sim_per_jd.mean().item()
 
-    # Step 5: Compute scores
-    section_score = sum(sections_detected.values()) * 5
-    keyword_score = len(matched) / max(len(job_tokens), 1) * 35
-    semantic_score = semantic_similarity * 60  # scaled to 0-50
-    if semantic_similarity < 0.6:
-       semantic_score *= 0.5
-    ats_score = round(min(100, section_score + keyword_score + semantic_score), 2)
+#     # Step 5: Compute scores
+#     section_score = sum(sections_detected.values()) * 5
+#     keyword_score = len(matched) / max(len(job_tokens), 1) * 35
+#     semantic_score = semantic_similarity * 60  # scaled to 0-50
+#     if semantic_similarity < 0.6:
+#        semantic_score *= 0.5
+#     ats_score = round(min(100, section_score + keyword_score + semantic_score), 2)
 
-    # Step 6: Suggestions
-    suggestions = []
+#     # Step 6: Suggestions
+#     suggestions = []
 
-    job_keywords = list(job_tokens - resume_tokens)
-    if job_keywords:
-        # Get embeddings for job description keywords and full resume
-        job_kw_embeddings = model.encode(job_keywords, convert_to_tensor=True)
-        resume_embedding = model.encode(resume_text, convert_to_tensor=True)
+#     job_keywords = list(job_tokens - resume_tokens)
+#     if job_keywords:
+#         # Get embeddings for job description keywords and full resume
+#         job_kw_embeddings = model.encode(job_keywords, convert_to_tensor=True)
+#         resume_embedding = model.encode(resume_text, convert_to_tensor=True)
 
-        # Compute cosine similarity between each job keyword and entire resume
-        sims = util.cos_sim(job_kw_embeddings, resume_embedding).squeeze()
+#         # Compute cosine similarity between each job keyword and entire resume
+#         sims = util.cos_sim(job_kw_embeddings, resume_embedding).squeeze()
 
-        # Rank by *lowest* semantic similarity (i.e., most missing concepts)
-        ranked_keywords = sorted(
-            zip(job_keywords, sims.tolist()),
-            key=lambda x: x[1]
-        )
+#         # Rank by *lowest* semantic similarity (i.e., most missing concepts)
+#         ranked_keywords = sorted(
+#             zip(job_keywords, sims.tolist()),
+#             key=lambda x: x[1]
+#         )
 
-        # Filter out very common or unimportant words
-        ignore = {"high", "good", "able", "using", "based", "help", "work", "team",
-          "time", "will", "you", "your", "well", "effort", "performing",
-          "leading", "cross", "reviewing", "responsible", "ensure", "support"}
+#         # Filter out very common or unimportant words
+#         ignore = {"high", "good", "able", "using", "based", "help", "work", "team",
+#           "time", "will", "you", "your", "well", "effort", "performing",
+#           "leading", "cross", "reviewing", "responsible", "ensure", "support"}
       
 
-        # Extract only nouns, verbs, and adjectives (technical/meaningful words)
-        filtered_keywords = []
-        for kw, score in ranked_keywords:
-           if kw in ignore or kw in stopwords.words('english'):
+#         # Extract only nouns, verbs, and adjectives (technical/meaningful words)
+#         filtered_keywords = []
+#         for kw, score in ranked_keywords:
+#            if kw in ignore or kw in stopwords.words('english'):
+#                 continue
+#            pos = pos_tag([kw])[0][1]
+#            if pos.startswith(('NN', 'VB', 'JJ')):  # Noun, Verb, Adjective
+#                 filtered_keywords.append(kw)
+
+#         top_keywords = filtered_keywords[:17]  # top 7 missing keywords
+
+#         if top_keywords:
+#             suggestions.append(
+#                f"Consider adding these relevant keywords to better align with the job description: {', '.join(top_keywords)}."
+#             )
+#         else:
+#             suggestions.append("Your resume semantically covers most of the job description well.")
+#     else:
+#         suggestions.append("No missing keywords detected.")
+
+#     results.append ({
+#         "ats_score": ats_score,
+#         "sections_detected": sections_detected,
+#         "semantic_similarity": round(semantic_similarity * 100, 2),
+#         "keyword_match": {
+#             "match_percent": round(len(matched) / max(len(job_tokens), 1) * 100, 2),
+#             "matched_keywords": sorted(matched),
+#         },
+#         "improvements": suggestions,
+#     })
+#     if len(results) == 1:
+#       return results[0]
+#     else:
+#       return {"results": results}
+
+
+@app.post("/api/ats-test")
+async def ats_test(resumes: list[UploadFile] = File(...), job_desc: str = Form(...)):
+    results = []
+
+    # ensure job description lowercase
+    job_desc = job_desc.lower()
+
+    for resume in resumes:
+        # Step 1: Read resume content
+        contents = await resume.read()
+        suffix = os.path.splitext(resume.filename)[1].lower()
+
+        # Extract text
+        try:
+            if suffix == ".pdf":
+                reader = PdfReader(io.BytesIO(contents))
+                resume_text = "".join([page.extract_text() or "" for page in reader.pages]).lower()
+            elif suffix == ".docx":
+                doc = Document(io.BytesIO(contents))
+                resume_text = "\n".join([para.text for para in doc.paragraphs]).lower()
+            else:
+                results.append({
+                    "filename": resume.filename,
+                    "error": "Unsupported file format (use .pdf or .docx)"
+                })
                 continue
-           pos = pos_tag([kw])[0][1]
-           if pos.startswith(('NN', 'VB', 'JJ')):  # Noun, Verb, Adjective
-                filtered_keywords.append(kw)
+        except Exception as e:
+            results.append({
+                "filename": resume.filename,
+                "error": f"Error reading file: {str(e)}"
+            })
+            continue
 
-        top_keywords = filtered_keywords[:17]  # top 7 missing keywords
+        # Step 2: Prepare job tokens
+        stop_words = {
+            "a", "an", "the", "in", "on", "and", "of", "to", "for", "from", "with",
+            "at", "by", "this", "that", "is", "it", "as", "are", "was", "be", "or"
+        }
 
-        if top_keywords:
-            suggestions.append(
-               f"Consider adding these relevant keywords to better align with the job description: {', '.join(top_keywords)}."
-            )
+        job_tokens = {w for w in re.findall(r"\b\w+\b", job_desc) if w not in stop_words and len(w) > 2}
+        resume_tokens = {w for w in re.findall(r"\b\w+\b", resume_text) if w not in stop_words and len(w) > 2}
+        matched = resume_tokens & job_tokens
+
+        # Step 3: Section detection
+        ats_sections = {
+            "summary": ["summary", "profile", "overview", "professional summary"],
+            "objective": ["objective", "career objective"],
+            "experience": ["experience", "work experience", "employment", "professional experience"],
+            "education": ["education", "qualifications", "academics", "academic background"],
+            "skills": ["skills", "technical skills", "expertise", "competencies"],
+            "projects": ["projects", "work samples", "portfolio", "personal projects"],
+            "certifications": ["certifications", "licenses", "achievements", "awards"]
+        }
+
+        sections_detected = {sec: any(k.lower() in resume_text for k in kws) for sec, kws in ats_sections.items()}
+
+        # Step 4: Semantic similarity
+        resume_sents = sent_tokenize(resume_text)
+        jd_sents = sent_tokenize(job_desc)
+
+        resume_embeddings = model.encode(resume_sents, convert_to_tensor=True)
+        jd_embeddings = model.encode(jd_sents, convert_to_tensor=True)
+
+        cos_scores = util.pytorch_cos_sim(jd_embeddings, resume_embeddings)
+        max_sim_per_jd = cos_scores.max(dim=1).values
+        semantic_similarity = max_sim_per_jd.mean().item()
+
+        # Step 5: Compute scores
+        section_score = sum(sections_detected.values()) * 5
+        keyword_score = len(matched) / max(len(job_tokens), 1) * 35
+        semantic_score = semantic_similarity * 60
+        if semantic_similarity < 0.6:
+            semantic_score *= 0.5
+
+        ats_score = round(min(100, section_score + keyword_score + semantic_score), 2)
+
+        # Step 6: Suggestions
+        suggestions = []
+        job_keywords = list(job_tokens - resume_tokens)
+        if job_keywords:
+            job_kw_embeddings = model.encode(job_keywords, convert_to_tensor=True)
+            resume_embedding = model.encode(resume_text, convert_to_tensor=True)
+            sims = util.cos_sim(job_kw_embeddings, resume_embedding).squeeze()
+
+            ranked_keywords = sorted(zip(job_keywords, sims.tolist()), key=lambda x: x[1])
+            ignore = {
+                "high", "good", "able", "using", "based", "help", "work", "team",
+                "time", "will", "you", "your", "well", "effort", "performing",
+                "leading", "cross", "reviewing", "responsible", "ensure", "support"
+            }
+
+            filtered_keywords = []
+            for kw, score in ranked_keywords:
+                if kw in ignore or kw in stopwords.words('english'):
+                    continue
+                pos = pos_tag([kw])[0][1]
+                if pos.startswith(('NN', 'VB', 'JJ')):
+                    filtered_keywords.append(kw)
+
+            top_keywords = filtered_keywords[:17]
+            if top_keywords:
+                suggestions.append(
+                    f"Consider adding these relevant keywords to better align with the job description: {', '.join(top_keywords)}."
+                )
+            else:
+                suggestions.append("Your resume semantically covers most of the job description well.")
         else:
-            suggestions.append("Your resume semantically covers most of the job description well.")
+            suggestions.append("No missing keywords detected.")
+
+        # ✅ Add this resume’s result
+        results.append({
+            "filename": resume.filename,
+            "ats_score": ats_score,
+            "sections_detected": sections_detected,
+            "semantic_similarity": round(semantic_similarity * 100, 2),
+            "keyword_match": {
+                "match_percent": round(len(matched) / max(len(job_tokens), 1) * 100, 2),
+                "matched_keywords": sorted(matched),
+            },
+            "improvements": suggestions,
+        })
+
+    # ✅ Final Return
+    if len(results) == 1:
+        return results[0]
     else:
-        suggestions.append("No missing keywords detected.")
-
-    return {
-        "ats_score": ats_score,
-        "sections_detected": sections_detected,
-        "semantic_similarity": round(semantic_similarity * 100, 2),
-        "keyword_match": {
-            "match_percent": round(len(matched) / max(len(job_tokens), 1) * 100, 2),
-            "matched_keywords": sorted(matched),
-        },
-        "improvements": suggestions,
-    }
-
+        return {"results": results}
 
 def generate_response(message: str, system_prompt: str, temperature: float, max_tokens: int):
     conversation = [
