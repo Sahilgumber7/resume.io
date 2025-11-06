@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import Lnavbar from "@/components/Lnavbar";
 import Result from "./result";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+import { Lock } from "lucide-react";
 
 export default function ParserPage() {
   const [file, setFile] = useState(null);
@@ -12,6 +14,8 @@ export default function ParserPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const { isSignedIn } = useUser();
   const router = useRouter();
 
   const fadeUp = {
@@ -24,6 +28,7 @@ export default function ParserPage() {
       setError("⚠️ Please select a resume file first.");
       return;
     }
+
     setLoading(true);
     setError("");
     setParsed(null);
@@ -31,10 +36,12 @@ export default function ParserPage() {
     try {
       const formData = new FormData();
       formData.append("resume", file);
+
       const res = await fetch("/api/parser", {
         method: "POST",
         body: formData,
       });
+
       const data = await res.json();
       setParsed(data);
     } catch (err) {
@@ -46,6 +53,13 @@ export default function ParserPage() {
 
   const handleSaveAndOpen = async () => {
     if (!parsed) return;
+
+    // 🔒 Require Authentication to Save & Open
+    if (!isSignedIn) {
+      router.push("/sign-in?redirect_url=/parser");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -53,7 +67,7 @@ export default function ParserPage() {
         fullName: parsed.name || "",
         email: parsed.email || "",
         phone: parsed.phone || "",
-        title: file.name || "Untitled Resume",
+        title: file?.name || "Untitled Resume",
         jobTitle: parsed.jobTitle || "",
         address: parsed.location || "",
         themeColor: "#000000",
@@ -80,6 +94,7 @@ export default function ParserPage() {
         const expArr = parsed.sections.experience;
         const chunks = [];
         let current = [];
+
         expArr.forEach((line) => {
           if (line.startsWith("•") && current.length) {
             chunks.push([...current]);
@@ -87,6 +102,7 @@ export default function ParserPage() {
           }
           current.push(line);
         });
+
         if (current.length) chunks.push(current);
 
         formattedResume.experience = chunks.map((chunk) => ({
@@ -124,6 +140,7 @@ export default function ParserPage() {
           }
           current.push(line);
         });
+
         if (current.length) projects.push(current);
 
         formattedResume.projects = projects.map((proj) => ({
@@ -139,10 +156,11 @@ export default function ParserPage() {
       });
 
       if (!res.ok) {
-  const errorText = await res.text();
-  console.error("SAVE ERROR:", errorText);
-  throw new Error("Failed to save resume");
-}
+        const errorText = await res.text();
+        console.error("SAVE ERROR:", errorText);
+        throw new Error("Failed to save resume");
+      }
+
       const savedResume = await res.json();
       router.push(`/builder/${savedResume._id}`);
     } catch (err) {
@@ -244,9 +262,14 @@ export default function ParserPage() {
                 <Button
                   onClick={handleSaveAndOpen}
                   disabled={saving}
-                  className="px-10 py-3 text-lg font-semibold shadow-md hover:scale-105 transition bg-green-600 hover:bg-green-700 text-white"
+                  className="px-10 py-3 text-lg font-semibold shadow-md hover:scale-105 transition bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
                 >
-                  {saving ? "Saving..." : "Open in Builder"}
+                  {!isSignedIn && <Lock size={18} />}
+                  {saving
+                    ? "Saving..."
+                    : isSignedIn
+                    ? "Open in Builder"
+                    : "Sign in to Continue"}
                 </Button>
               </div>
             </motion.div>
