@@ -4,3 +4,8 @@ python-multipart
 PyPDF2
 python-docx
 groq
+docx2txt
+spacy
+pymupdf
+nltk
+sentence-transformers

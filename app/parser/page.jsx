@@ -138,7 +138,11 @@ export default function ParserPage() {
         body: JSON.stringify(formattedResume),
       });
 
-      if (!res.ok) throw new Error("Failed to save resume");
+      if (!res.ok) {
+  const errorText = await res.text();
+  console.error("SAVE ERROR:", errorText);
+  throw new Error("Failed to save resume");
+}
       const savedResume = await res.json();
       router.push(`/builder/${savedResume._id}`);
     } catch (err) {
