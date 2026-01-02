@@ -217,7 +217,7 @@ async def parse_resume(resume: UploadFile = File(...)):
 #       return {"results": results}
 
 
-@app.post("/api/ats-test")
+@app.post("/ats-test")
 async def ats_test(resumes: list[UploadFile] = File(...), job_desc: str = Form(...)):
     results = []
 
