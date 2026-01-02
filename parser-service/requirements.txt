@@ -9,3 +9,8 @@ spacy
 pymupdf
 nltk
 sentence-transformers
+python-dotenv
+pydantic-settings
+torch
+pydantic
+transformers
