@@ -1,4 +1,6 @@
 import os
+from typing import Callable, Dict, Optional
+
 import fitz  # PyMuPDF
 from docx import Document
 from app.utils import text_utils
@@ -24,6 +26,13 @@ def parse_docx(file_path: str):
         print(f"Error parsing DOCX: {e}")
         return None
 
+
+PARSERS: Dict[str, Callable[[str], Optional[str]]] = {
+    ".pdf": parse_pdf,
+    ".docx": parse_docx,
+}
+
+
 def extract_resume_data(text: str):
     if not text:
         return {}
@@ -37,18 +46,15 @@ def extract_resume_data(text: str):
         "raw_text": text
     }
 
+
 def parse_file(file_path: str):
     suffix = os.path.splitext(file_path)[1].lower()
-    text = ""
-    
-    if suffix == ".pdf":
-        text = parse_pdf(file_path)
-    elif suffix == ".docx":
-        text = parse_docx(file_path)
-    else:
+    parser = PARSERS.get(suffix)
+    if parser is None:
         return {"error": "Unsupported file format"}
-    
+
+    text = parser(file_path)
     if text is None:
         return {"error": "Failed to extract text from file"}
-        
+
     return extract_resume_data(text)

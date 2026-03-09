@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { templateList } from "@/components/template"
 import {
   Select,
   SelectContent,
@@ -21,9 +22,11 @@ export default function TemplateSelector({ selectedTemplate, setSelectedTemplate
           <SelectValue placeholder="Select a template" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="template1">Template 1</SelectItem>
-          <SelectItem value="template2">Template 2</SelectItem>
-          <SelectItem value="template3">Template 3</SelectItem>
+          {templateList.map((template) => (
+            <SelectItem key={template.id} value={template.id}>
+              {template.label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

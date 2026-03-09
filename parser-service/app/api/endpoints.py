@@ -1,19 +1,40 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
-from app.services import parser_service, ats_service, ai_service
 import os
 import tempfile
+from typing import Tuple
+
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+
+from app.services import ai_service, ats_service, parser_service
 
 router = APIRouter()
+SUPPORTED_FILE_SUFFIXES = {".pdf", ".docx"}
+
+
+async def _save_upload_to_tempfile(upload: UploadFile) -> Tuple[str, str]:
+    suffix = os.path.splitext(upload.filename or "")[1].lower()
+    if suffix not in SUPPORTED_FILE_SUFFIXES:
+        raise HTTPException(status_code=400, detail="Only PDF and DOCX files are supported")
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(await upload.read())
+        return tmp.name, suffix
+
+
+def _remove_file_if_exists(file_path: str) -> None:
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
 
 @router.post("/parse")
-async def parse_resume(file: UploadFile = File(...)):
-    suffix = os.path.splitext(file.filename)[1].lower()
-    if suffix not in [".pdf", ".docx"]:
-        raise HTTPException(status_code=400, detail="Only PDF and DOCX files are supported")
-    
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        tmp.write(await file.read())
-        tmp_path = tmp.name
+async def parse_resume(
+    file: UploadFile = File(None),
+    resume: UploadFile = File(None),
+):
+    upload = file or resume
+    if upload is None:
+        raise HTTPException(status_code=422, detail="Field required: file or resume")
+
+    tmp_path, _ = await _save_upload_to_tempfile(upload)
 
     try:
         result = parser_service.parse_file(tmp_path)
@@ -21,8 +42,8 @@ async def parse_resume(file: UploadFile = File(...)):
             raise HTTPException(status_code=500, detail=result["error"])
         return result
     finally:
-        if os.path.exists(tmp_path):
-            os.remove(tmp_path)
+        _remove_file_if_exists(tmp_path)
+
 
 @router.post("/ats-test")
 async def ats_test(
@@ -30,11 +51,7 @@ async def ats_test(
     job_desc: str = Form(""),
     use_ai: bool = Form(True)
 ):
-    # First parse the resume
-    suffix = os.path.splitext(resume.filename)[1].lower()
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        tmp.write(await resume.read())
-        tmp_path = tmp.name
+    tmp_path, _ = await _save_upload_to_tempfile(resume)
 
     try:
         parsed_data = parser_service.parse_file(tmp_path)
@@ -55,11 +72,11 @@ async def ats_test(
         if use_ai:
             ai_analysis = ai_service.analyze_resume(resume_text, job_desc)
             response["ai_analysis"] = ai_analysis
-            
+        
         return response
     finally:
-        if os.path.exists(tmp_path):
-            os.remove(tmp_path)
+        _remove_file_if_exists(tmp_path)
+
 
 @router.post("/analyze")
 async def analyze_text(
@@ -69,6 +86,7 @@ async def analyze_text(
 ):
     analysis = ai_service.analyze_resume(resume_text, job_desc, temperature)
     return {"analysis": analysis}
+
 
 @router.post("/rephrase")
 async def rephrase(text: str = Form(...)):

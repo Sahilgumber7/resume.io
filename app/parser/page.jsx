@@ -35,7 +35,7 @@ export default function ParserPage() {
 
     try {
       const formData = new FormData();
-      formData.append("resume", file);
+      formData.append("file", file);
 
       const res = await fetch("/api/parser", {
         method: "POST",
@@ -279,3 +279,4 @@ export default function ParserPage() {
     </>
   );
 }
+

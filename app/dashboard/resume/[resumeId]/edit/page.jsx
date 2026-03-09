@@ -7,11 +7,12 @@ import ResumePreview from '@/components/ResumePreview'
 import { ResumeInfoContext } from '../../../../../components/ResumeInfoContext'
 import Lnavbar from '@/components/Lnavbar'
 import TemplateSelector from '@/components/TemplateSelector'
+import { DEFAULT_TEMPLATE_ID } from '@/components/template'
 
 export default function EditResumePage() {
   const { resumeId } = useParams()
   const [resumeInfo, setResumeInfo] = useState(null)
-  const [selectedTemplate, setSelectedTemplate] = useState("template1")
+  const [selectedTemplate, setSelectedTemplate] = useState(DEFAULT_TEMPLATE_ID)
 
   useEffect(() => {
     if (resumeId) {

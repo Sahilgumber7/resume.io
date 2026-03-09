@@ -48,7 +48,7 @@ export default function ResumePDF({ resumeInfo }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Personal Details */}
+        {/** Personal Details */}
         <View style={styles.header}>
           <Text style={[styles.name, { color }]}>{resumeInfo.fullName}</Text>
           <Text style={styles.jobTitle}>{resumeInfo.jobTitle}</Text>
@@ -58,7 +58,7 @@ export default function ResumePDF({ resumeInfo }) {
           </Text>
         </View>
 
-        {/* Summary */}
+        {/** Summary */}
         {resumeInfo.summary && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color }]}>Summary</Text>
@@ -67,7 +67,7 @@ export default function ResumePDF({ resumeInfo }) {
           </View>
         )}
 
-        {/* Education */}
+        {/** Education */}
         {resumeInfo.education?.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color }]}>Education</Text>
@@ -84,7 +84,7 @@ export default function ResumePDF({ resumeInfo }) {
           </View>
         )}
 
-        {/* Experience */}
+        {/** Experience */}
         {resumeInfo.experience?.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color }]}>Professional Experience</Text>
@@ -93,8 +93,7 @@ export default function ResumePDF({ resumeInfo }) {
               <View key={idx} style={styles.item}>
                 <Text style={[styles.subTitle, { color }]}>{exp.title}</Text>
                 <Text style={styles.subText}>
-                  {exp.companyName}, {exp.city}, {exp.state} •{" "}
-                  {exp.startDate} - {exp.currentlyWorking ? "Present" : exp.endDate}
+                  {exp.companyName}, {exp.city}, {exp.state} | {exp.startDate} - {exp.currentlyWorking ? "Present" : exp.endDate}
                 </Text>
                 {exp.worksummary && (
                   <Text>{exp.worksummary.replace(/<[^>]*>?/gm, "")}</Text>
@@ -104,7 +103,7 @@ export default function ResumePDF({ resumeInfo }) {
           </View>
         )}
 
-        {/* Projects */}
+        {/** Projects */}
         {resumeInfo.projects?.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color }]}>Projects</Text>
@@ -118,7 +117,7 @@ export default function ResumePDF({ resumeInfo }) {
           </View>
         )}
 
-        {/* Skills */}
+        {/** Skills */}
         {resumeInfo.skills?.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color }]}>Skills</Text>

@@ -3,7 +3,6 @@ import React from "react";
 export default function Template3({ resumeInfo }) {
   return (
     <main className="max-w-[960px] mx-auto my-8 p-8 bg-white font-sans">
-      {/* Header */}
       <header
         className="grid gap-2 border-b-4 pb-4"
         style={{ borderColor: resumeInfo?.themeColor || "#000" }}
@@ -14,7 +13,7 @@ export default function Template3({ resumeInfo }) {
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-gray-600 text-sm">
           {resumeInfo?.email && (
             <span>
-              📧{" "}
+              Email:{" "}
               <a href={`mailto:${resumeInfo.email}`} className="text-sky-900">
                 {resumeInfo.email}
               </a>
@@ -22,7 +21,7 @@ export default function Template3({ resumeInfo }) {
           )}
           {resumeInfo?.phone && (
             <span>
-              📱{" "}
+              Phone:{" "}
               <a href={`tel:${resumeInfo.phone}`} className="text-sky-900">
                 {resumeInfo.phone}
               </a>
@@ -30,7 +29,7 @@ export default function Template3({ resumeInfo }) {
           )}
           {resumeInfo?.linkedin && (
             <span>
-              🔗{" "}
+              LinkedIn:{" "}
               <a
                 href={resumeInfo.linkedin}
                 target="_blank"
@@ -43,7 +42,7 @@ export default function Template3({ resumeInfo }) {
           )}
           {resumeInfo?.github && (
             <span>
-              💻{" "}
+              GitHub:{" "}
               <a
                 href={resumeInfo.github}
                 target="_blank"
@@ -58,9 +57,7 @@ export default function Template3({ resumeInfo }) {
       </header>
 
       <div className="grid gap-8 mt-8 md:grid-cols-[2fr_1fr]">
-        {/* Left Column */}
         <div>
-          {/* Education */}
           {resumeInfo?.education?.length > 0 && (
             <section>
               <h2 className="uppercase font-bold text-sm mb-3 text-slate-900 tracking-wide">
@@ -70,7 +67,7 @@ export default function Template3({ resumeInfo }) {
               {resumeInfo.education.map((edu, i) => (
                 <div key={i} className="mb-5">
                   <h3 className="text-base font-semibold">
-                    {edu.universityName} — {edu.degree}
+                    {edu.universityName} - {edu.degree}
                   </h3>
                   <div className="flex gap-4 text-gray-600 text-xs mt-1">
                     <span>{edu.city}</span>
@@ -79,16 +76,13 @@ export default function Template3({ resumeInfo }) {
                     </span>
                   </div>
                   {edu.description && (
-                    <p className="text-gray-600 text-sm mt-2">
-                      {edu.description}
-                    </p>
+                    <p className="text-gray-600 text-sm mt-2">{edu.description}</p>
                   )}
                 </div>
               ))}
             </section>
           )}
 
-          {/* Experience */}
           {resumeInfo?.experience?.length > 0 && (
             <section>
               <h2 className="uppercase font-bold text-sm mb-3 text-slate-900 tracking-wide">
@@ -98,13 +92,12 @@ export default function Template3({ resumeInfo }) {
               {resumeInfo.experience.map((exp, i) => (
                 <div key={i} className="mb-5">
                   <h3 className="text-base font-semibold">
-                    {exp.companyName} — {exp.title}
+                    {exp.companyName} - {exp.title}
                   </h3>
                   <div className="flex gap-4 text-gray-600 text-xs mt-1">
                     <span>{exp.city}</span>
                     <span>
-                      {exp.startDate} -{" "}
-                      {exp.currentlyWorking ? "Present" : exp.endDate}
+                      {exp.startDate} - {exp.currentlyWorking ? "Present" : exp.endDate}
                     </span>
                   </div>
                   <div
@@ -116,7 +109,6 @@ export default function Template3({ resumeInfo }) {
             </section>
           )}
 
-          {/* Projects */}
           {resumeInfo?.projects?.length > 0 && (
             <section>
               <h2 className="uppercase font-bold text-sm mb-3 text-slate-900 tracking-wide">
@@ -126,18 +118,14 @@ export default function Template3({ resumeInfo }) {
               {resumeInfo.projects.map((project, i) => (
                 <div key={i} className="mb-5">
                   <h3 className="text-base font-semibold">{project.title}</h3>
-                  <p className="text-sm text-gray-700 mt-2">
-                    {project.description}
-                  </p>
+                  <p className="text-sm text-gray-700 mt-2">{project.description}</p>
                 </div>
               ))}
             </section>
           )}
         </div>
 
-        {/* Sidebar */}
         <aside>
-          {/* Skills */}
           {resumeInfo?.skills?.length > 0 && (
             <section>
               <h2 className="uppercase font-bold text-sm mb-3 text-slate-900 tracking-wide">
@@ -152,7 +140,6 @@ export default function Template3({ resumeInfo }) {
             </section>
           )}
 
-          {/* Links */}
           {(resumeInfo?.github || resumeInfo?.linkedin) && (
             <section className="mt-6">
               <h2 className="uppercase font-bold text-sm mb-3 text-slate-900 tracking-wide">
@@ -162,22 +149,14 @@ export default function Template3({ resumeInfo }) {
               <ul className="list-disc list-inside text-sm text-gray-700">
                 {resumeInfo.github && (
                   <li>
-                    <a
-                      href={resumeInfo.github}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <a href={resumeInfo.github} target="_blank" rel="noreferrer">
                       {resumeInfo.github}
                     </a>
                   </li>
                 )}
                 {resumeInfo.linkedin && (
                   <li>
-                    <a
-                      href={resumeInfo.linkedin}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <a href={resumeInfo.linkedin} target="_blank" rel="noreferrer">
                       {resumeInfo.linkedin}
                     </a>
                   </li>

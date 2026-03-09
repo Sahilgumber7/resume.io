@@ -295,7 +295,7 @@ export default function ResumeATSTester() {
         // Step 2: ATS analysis for this resume only
         // ----------------------
         const atsFormData = new FormData();
-        atsFormData.append("resumes", resume); // send one resume at a time
+        atsFormData.append("resume", resume); // send one resume at a time
         atsFormData.append("job_desc", jobDesc);
 
         const atsRes = await fetch("/api/ats-test", {

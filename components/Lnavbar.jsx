@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import ThemeToggle from './ThemeToggle';
-import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from '@clerk/nextjs';
+import { SignInButton, UserButton, useUser } from '@clerk/nextjs';
 import {
   Dialog,
   DialogContent,
@@ -94,20 +94,20 @@ export default function Lnavbar() {
           </Button>
         </Link>
           
-          <SignedIn>
+          {isSignedIn && (
             <Link href="/dashboard">
               <Button variant="ghost" size="sm">Dashboard</Button>
             </Link>
-          </SignedIn>
+          )}
           <ThemeToggle />
-          <SignedOut>
+          {!isSignedIn && (
             <SignInButton mode="modal">
               <Button size="sm">Sign In</Button>
             </SignInButton>
-          </SignedOut>
-          <SignedIn>
+          )}
+          {isSignedIn && (
             <UserButton />
-          </SignedIn>
+          )}
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -125,17 +125,17 @@ export default function Lnavbar() {
           <Button variant="ghost" size="sm" onClick={handleBuilderClick}>
             Builder
           </Button>
-          <SignedIn>
+          {isSignedIn && (
             <Link href="/dashboard">
               <Button variant="ghost" size="sm">Dashboard</Button>
             </Link>
-          </SignedIn>
+          )}
           <ThemeToggle />
-          <SignedOut>
+          {!isSignedIn && (
             <SignInButton mode="modal">
               <Button size="sm">Sign In</Button>
             </SignInButton>
-          </SignedOut>
+          )}
         </div>
       )}
 

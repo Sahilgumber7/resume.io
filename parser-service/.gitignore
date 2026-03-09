@@ -1,45 +1,36 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# Virtual environments
+.venv/
+venv/
+env/
 
-# testing
-/coverage
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
 
-# next.js
-/.next/
-/out/
+# Test and tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
-# production
-/build
+# Environment files
+.env
+.env.*
+!.env.example
 
-# misc
+# IDE and OS files
+.vscode/
+.idea/
 .DS_Store
-*.pem
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-
-# local env files to be added
-.env.local
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# clerk configuration (can include secrets)
-/.clerk/
+# Runtime uploads/logs
+uploads/
+*.log
