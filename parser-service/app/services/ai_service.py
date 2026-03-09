@@ -2,9 +2,12 @@ from groq import Groq
 from app.core.config import get_settings
 
 settings = get_settings()
-client = Groq(api_key=settings.GROQ_API_KEY)
+client = Groq(api_key=settings.GROQ_API_KEY) if settings.GROQ_API_KEY else None
 
 def generate_ai_response(prompt: str, system_prompt: str, temperature: float = 0.5, max_tokens: int = 1500):
+    if client is None:
+        return "Error from AI Service: GROQ_API_KEY is not configured"
+
     try:
         response = client.chat.completions.create(
             model=settings.MODEL_NAME,

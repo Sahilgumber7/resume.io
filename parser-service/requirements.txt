@@ -8,9 +8,8 @@ docx2txt
 spacy
 pymupdf
 nltk
-sentence-transformers
 python-dotenv
 pydantic-settings
-torch
 pydantic
-transformers
+huggingface_hub
+numpy

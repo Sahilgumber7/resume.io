@@ -1,11 +1,12 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
-import os
 
 class Settings(BaseSettings):
-    GROQ_API_KEY: str = "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"
+    GROQ_API_KEY: str = ""
     MODEL_NAME: str = "llama-3.1-8B-Instant"
     EMBEDDING_MODEL: str = "BAAI/bge-large-en"
+    EMBEDDING_BACKEND: str = "hf"  # "hf" (recommended for Render) or "local"
+    HF_API_TOKEN: str = ""
     
     class Config:
         env_file = ".env"
