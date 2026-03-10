@@ -1,84 +1,56 @@
 'use client'
 
-import { useEffect, useState, useContext } from 'react'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { LoaderCircle } from 'lucide-react'
+import { useContext, useEffect, useState } from 'react'
+import { LoaderCircle, WandSparkles } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
+
 import { ResumeInfoContext } from '@/components/ResumeInfoContext'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import FormCard from './FormCard'
 
-function Summary({ enabledNext }) {
+export default function Summary() {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
-  const [summary, setSummary] = useState('')
-  const [loading, setLoading] = useState(false)
-
   const { resumeId } = useParams()
+  const [summary, setSummary] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [generating, setGenerating] = useState(false)
 
-  // ✅ Fetch from backend if context is empty
   useEffect(() => {
-    const fetchResume = async () => {
-      if (!resumeId) return
-      try {
-        const res = await fetch(`/api/resumes/${resumeId}`)
-        if (!res.ok) throw new Error('Failed to fetch resume data')
-        const data = await res.json()
-        setResumeInfo(data)
-        setSummary(data.summary || '')
-      } catch (error) {
-        console.error('Failed to fetch resume summary:', error)
-        toast.error('Could not load summary')
-      }
-    }
-
-    if (!resumeInfo || Object.keys(resumeInfo).length === 0) {
-      fetchResume()
-    } else {
-      setSummary(resumeInfo.summary || '')
-    }
-  }, [resumeId, resumeInfo, setResumeInfo])
+    setSummary(resumeInfo?.summary || '')
+  }, [resumeInfo?.summary])
 
   const handleSave = async () => {
     if (!resumeId) {
-      toast.error('Resume ID not found.')
+      toast.error('Resume ID not found')
       return
     }
 
-    setLoading(true)
+    setSaving(true)
     try {
       const res = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ summary }),
       })
-
-      if (!res.ok) throw new Error()
-
-      toast.success('Summary updated successfully!')
-
-      // Update context after successful save
-      setResumeInfo((prev) => ({
-        ...prev,
-        summary,
-      }))
-
-      enabledNext?.(true)
+      if (!res.ok) throw new Error('Failed to save summary')
+      setResumeInfo((prev) => ({ ...(prev || {}), summary }))
+      toast.success('Summary saved')
     } catch (error) {
-      toast.error('Failed to update summary.')
+      console.error(error)
+      toast.error('Failed to save summary')
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
   }
 
   const handleGenerateAI = async () => {
-    if (!summary) {
-      toast.error('Please write something first.')
+    if (!summary.trim()) {
+      toast.error('Write a draft summary first')
       return
     }
-
-    setLoading(true)
+    setGenerating(true)
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
@@ -87,69 +59,50 @@ function Summary({ enabledNext }) {
           prompt: `Rewrite this resume summary in a professional and concise tone:\n\n${summary}`,
         }),
       })
-
-      if (!res.ok) throw new Error()
+      if (!res.ok) throw new Error('AI generation failed')
       const data = await res.json()
-
-      setSummary(data.output) // update textarea
-      setResumeInfo((prev) => ({
-        ...prev,
-        summary: data.output,
-      }))
-      toast.success('AI-generated summary applied!')
-    } catch (err) {
-      console.error('AI generation failed:', err)
-      toast.error('Failed to generate summary.')
+      const generated = data?.output || ''
+      setSummary(generated)
+      setResumeInfo((prev) => ({ ...(prev || {}), summary: generated }))
+      toast.success('AI summary generated')
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to generate summary')
     } finally {
-      setLoading(false)
+      setGenerating(false)
     }
   }
 
   return (
-    <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
-      <h2 className="font-bold text-lg">Professional Summary</h2>
-      <p className="text-muted-foreground mb-4">
-        Write a brief summary about yourself.
-      </p>
-
+    <FormCard
+      title="Professional Summary"
+      description="Write a short overview of your strengths and career goals."
+    >
       <Textarea
-        rows={6}
+        rows={8}
         value={summary}
         onChange={(e) => {
-          const newSummary = e.target.value
-          setSummary(newSummary)
-          setResumeInfo((prev) => ({
-            ...prev,
-            summary: newSummary,
-          }))
-          enabledNext?.(false)
+          const value = e.target.value
+          setSummary(value)
+          setResumeInfo((prev) => ({ ...(prev || {}), summary: value }))
         }}
-        placeholder="E.g. Passionate software developer with 3+ years of experience..."
+        placeholder="Example: Product-focused software engineer with 4+ years of experience building scalable web apps..."
       />
-
-      <div className="flex justify-between mt-4">
-        <Button
-          variant="outline"
-          disabled={loading}
-          onClick={handleGenerateAI}
-        >
-          {loading ? (
-            <LoaderCircle className="w-4 h-4 animate-spin" />
+      <div className="mt-4 flex flex-wrap justify-between gap-2">
+        <Button variant="outline" onClick={handleGenerateAI} disabled={generating || saving}>
+          {generating ? (
+            <LoaderCircle className="h-4 w-4 animate-spin" />
           ) : (
-            '✨ Generate with AI'
+            <>
+              <WandSparkles className="mr-2 h-4 w-4" />
+              Improve with AI
+            </>
           )}
         </Button>
-
-        <Button disabled={loading} onClick={handleSave}>
-          {loading ? (
-            <LoaderCircle className="w-4 h-4 animate-spin" />
-          ) : (
-            'Save'
-          )}
+        <Button onClick={handleSave} disabled={saving || generating}>
+          {saving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : 'Save Summary'}
         </Button>
       </div>
-    </div>
+    </FormCard>
   )
 }
-
-export default Summary

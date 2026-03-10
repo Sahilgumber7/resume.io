@@ -43,6 +43,11 @@ export interface Resume {
   experience?: Experience[];
   skills?: Skill[];
   projects?: Project[];
+  sectionVisibility?: {
+    education?: boolean;
+    experience?: boolean;
+    projects?: boolean;
+  };
   createdAt?: string;
   updatedAt?: string;
 }

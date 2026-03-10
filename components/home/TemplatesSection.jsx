@@ -5,26 +5,26 @@ import { motion } from "framer-motion"
 
 export default function TemplatesSection() {
   return (
-    <section className="py-28 bg-background max-w-6xl mx-auto px-4 text-center">
+    <section className="mx-auto max-w-6xl px-4 py-24 text-center">
       <motion.h2
-        className="text-4xl md:text-5xl font-bold mb-6"
+        className="mb-6 text-4xl font-semibold md:text-5xl"
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
       >
-        Modern Resume Templates
+        Choose a resume template
       </motion.h2>
       <motion.p
-        className="text-muted-foreground mb-12"
+        className="mb-12 text-muted-foreground"
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1 }}
         viewport={{ once: true }}
       >
-        Professionally designed for every industry. Pick a template and make it yours.
+        Pick a layout and start editing right away.
       </motion.p>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {[1, 2, 3].map((num, i) => (
           <motion.div
             key={num}
@@ -32,7 +32,7 @@ export default function TemplatesSection() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: i * 0.2 }}
             viewport={{ once: true }}
-            className="overflow-hidden rounded-3xl shadow-lg hover:scale-105 transition bg-white dark:bg-zinc-900"
+            className="surface-card overflow-hidden rounded-[1.6rem] transition hover:-translate-y-1"
           >
             <Image
               src={`/template${num}.png`}

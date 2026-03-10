@@ -1,259 +1,75 @@
-// "use client";
-// import { useState } from "react";
-// import { motion } from "framer-motion";
-// import { Button } from "@/components/ui/button";
-// import Lnavbar from "@/components/Lnavbar";
-
-// export default function ResumeATSTester() {
-//   const [jobDesc, setJobDesc] = useState("");
-//   const [resumeFile, setResumeFile] = useState(null);
-//   const [parsed, setParsed] = useState(null);
-//   const [aiData, setAiData] = useState("");
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState("");
-
-//   const fadeUp = {
-//     hidden: { opacity: 0, y: 30 },
-//     show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
-//   };
-
-//   const handleUpload = async () => {
-//     if (!resumeFile || resumeFiles.length === 0 || !jobDesc.trim()) {
-//       setError("⚠️ Please upload a resume and paste a job description.");
-//       return;
-//     }
-
-//     setLoading(true);
-//     setParsed(null);
-//     setAiData("");
-//     setError("");
-
-//     try {
-//       const formData = new FormData();
-//       formData.append("resume", resumeFile);
-
-//       const parseRes = await fetch("/api/parser", { method: "POST", body: formData });
-//       if (!parseRes.ok) throw new Error("Failed to parse resume");
-//       const parsedResume = await parseRes.json();
-
-//       let resumeText = "";
-//       if (parsedResume.sections) {
-//         for (const sec of Object.values(parsedResume.sections)) {
-//           resumeText += Array.isArray(sec) ? sec.join("\n") + "\n" : "";
-//         }
-//       }
-
-//       const atsFormData = new FormData();
-//       atsFormData.append("resume", resumeFile);
-//       atsFormData.append("job_desc", jobDesc);
-//       const atsRes = await fetch("/api/ats-test", { method: "POST", body: atsFormData });
-//       const atsData = await atsRes.json();
-//       setParsed(atsData);
-
-//       const aiFormData = new FormData();
-//       aiFormData.append("resume_text", resumeText);
-//       aiFormData.append("job_description", jobDesc);
-//       aiFormData.append("with_job_description", "true");
-//       aiFormData.append("temperature", "0.3");
-//       aiFormData.append("max_tokens", "500");
-
-//       const aiResponse = await fetch("/api/analyze-resume", { method: "POST", body: aiFormData });
-//       const aiJson = await aiResponse.json();
-//       setAiData(aiJson.ai_analysis);
-//     } catch (err) {
-//       console.error(err);
-//       setError("❌ Something went wrong while processing.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <>
-//       <Lnavbar />
-//       <section className="relative min-h-screen bg-gradient-to-br from-primary/10 via-background to-muted/40 dark:from-[#0d0d0f] dark:via-[#141416] dark:to-[#1a1a1c] flex items-center justify-center py-20 px-6 transition-colors duration-300">
-//         <motion.div
-//           className="w-full max-w-3xl mx-auto bg-white/90 dark:bg-[#1a1a1c]/90 backdrop-blur-xl rounded-2xl shadow-2xl p-10 space-y-8 border border-gray-100 dark:border-[#1d1d20]"
-//           initial="hidden"
-//           animate="show"
-//           variants={fadeUp}
-//         >
-//           <motion.h1
-//             className="text-4xl sm:text-5xl font-bold text-center text-gray-800 dark:text-[#f2f2f3]"
-//             variants={fadeUp}
-//           >
-//             Resume ATS + AI Analyzer
-//           </motion.h1>
-//           <motion.p
-//             className="text-center text-gray-600 dark:text-[#9a9a9e] text-lg"
-//             variants={fadeUp}
-//           >
-//             Upload your <span className="font-semibold text-primary">PDF</span> or{" "}
-//             <span className="font-semibold text-primary">DOCX</span> resume and paste the job
-//             description to evaluate ATS compatibility and get AI insights.
-//           </motion.p>
-
-//           <motion.div className="flex flex-col space-y-6" variants={fadeUp}>
-//             {/* Job Description */}
-//             <div>
-//               <label className="block mb-2 font-semibold text-gray-700 dark:text-[#f2f2f3]">
-//                 Job Description
-//               </label>
-//               <textarea
-//                 placeholder="Paste job description here..."
-//                 className="w-full p-4 border rounded-xl h-36 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none bg-gray-50 dark:bg-[#1a1a1c] dark:text-[#f2f2f3] dark:border-[#1d1d20]"
-//                 value={jobDesc}
-//                 onChange={(e) => setJobDesc(e.target.value)}
-//               />
-//             </div>
-
-//             {/* Resume Upload */}
-//             <label
-//               htmlFor="resume-upload"
-//               className="w-full flex flex-col items-center justify-center h-44 border-2 border-dashed border-gray-300 dark:border-[#1d1d20] rounded-xl bg-gray-50 dark:bg-[#1a1a1c] hover:bg-gray-100 dark:hover:bg-[#232326] cursor-pointer transition"
-//             >
-//               <div className="text-center text-gray-600 dark:text-[#f2f2f3]">
-//                 <svg
-//                   xmlns="http://www.w3.org/2000/svg"
-//                   className="w-12 h-12 mx-auto text-primary mb-2"
-//                   fill="none"
-//                   viewBox="0 0 24 24"
-//                   strokeWidth="1.5"
-//                   stroke="currentColor"
-//                 >
-//                   <path
-//                     strokeLinecap="round"
-//                     strokeLinejoin="round"
-//                     d="M3 16.5V21h18v-4.5M12 3v12m0 0l4.5-4.5M12 15l-4.5-4.5"
-//                   />
-//                 </svg>
-//                 <p className="font-medium">Click or drag to upload resume</p>
-//                 <p className="text-sm text-gray-500 dark:text-[#9a9a9e] mt-1">PDF or DOCX up to 5MB</p>
-//               </div>
-//               <input
-//                 id="resume-upload"
-//                 type="file"
-//                 accept=".pdf,.docx"
-//                 className="hidden"
-//                 onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-//               />
-//             </label>
-
-//             {resumeFile && (
-//               <p className="text-sm text-blue-700 dark:text-blue-400 font-medium">
-//                 ✅ Selected: {resumeFile.name}
-//               </p>
-//             )}
-
-//             {/* Analyze Button */}
-//             <Button
-//               size="lg"
-//               onClick={handleUpload}
-//               disabled={loading || !resumeFile || !jobDesc.trim()}
-//               className="px-8 text-lg font-semibold shadow-md hover:scale-105 transition"
-//             >
-//               {loading ? "Analyzing..." : "Analyze Resume"}
-//             </Button>
-
-//             {error && (
-//               <div className="text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800 p-3 rounded-lg text-sm">
-//                 {error}
-//               </div>
-//             )}
-//           </motion.div>
-
-//           {/* Results */}
-//           {parsed && !loading && (
-//             <motion.div className="space-y-6" variants={fadeUp}>
-//               {/* ATS Score */}
-//               <div className="p-4 bg-gray-50 dark:bg-[#1a1a1c] rounded-xl shadow-sm border border-gray-100 dark:border-[#1d1d20]">
-//                 <h2 className="text-xl font-bold text-primary dark:text-primary/80">
-//                   ATS Score: {parsed.ats_score ?? "N/A"}%
-//                 </h2>
-//               </div>
-
-//               {/* Sections Detected */}
-//               {parsed.sections_detected && typeof parsed.sections_detected === "object" && (
-//                 <div>
-//                   <h3 className="font-semibold mb-1 text-gray-700 dark:text-[#f2f2f3]">Sections Detected</h3>
-//                   <pre className="bg-gray-100 dark:bg-[#1a1a1c] text-black dark:text-[#f2f2f3] p-3 rounded text-sm">
-//                     {JSON.stringify(parsed.sections_detected, null, 2)}
-//                   </pre>
-//                 </div>
-//               )}
-
-//               {/* Semantic Similarity */}
-//               {parsed.semantic_similarity && typeof parsed.semantic_similarity === "object" && (
-//                 <div>
-//                   <h3 className="font-semibold mb-1 text-gray-700 dark:text-[#f2f2f3]">Semantic Similarity</h3>
-//                   <pre className="bg-gray-100 dark:bg-[#1a1a1c] text-black dark:text-[#f2f2f3] p-3 rounded text-sm">
-//                     {JSON.stringify(parsed.semantic_similarity, null, 2)}
-//                   </pre>
-//                 </div>
-//               )}
-
-//               {/* Keyword Match */}
-//               {parsed.keyword_match?.matched_keywords &&
-//                 Array.isArray(parsed.keyword_match.matched_keywords) &&
-//                 parsed.keyword_match.matched_keywords.length > 0 && (
-//                   <div>
-//                     <h3 className="font-semibold mb-1 text-gray-700 dark:text-[#f2f2f3]">Keyword Match</h3>
-//                     <pre className="bg-gray-100 dark:bg-[#1a1a1c] text-black dark:text-[#f2f2f3] p-3 rounded text-sm">
-//                       {JSON.stringify(parsed.keyword_match.matched_keywords, null, 2)}
-//                     </pre>
-//                   </div>
-//                 )}
-
-//               {/* Suggestions */}
-//               {Array.isArray(parsed.improvements) && parsed.improvements.length > 0 && (
-//                 <div>
-//                   <h3 className="font-semibold mb-1 text-gray-700 dark:text-[#f2f2f3]">Suggestions</h3>
-//                   <ul className="list-disc pl-6 text-sm space-y-1">
-//                     {parsed.improvements.map((s, i) => (
-//                       <li key={i}>{s}</li>
-//                     ))}
-//                   </ul>
-//                 </div>
-//               )}
-
-//               {/* AI Analysis */}
-// {aiData && (
-//   <div className="p-4 bg-primary/10 dark:bg-primary/20 rounded-xl border border-primary/20 dark:border-primary/40">
-//     <h3 className="font-semibold text-primary dark:text-primary/80 mb-2">AI Analysis</h3>
-//     <pre className="whitespace-pre-wrap text-sm text-gray-600 dark:text-[#f2f2f3]">{aiData}</pre>
-//   </div>
-// )}
-// </motion.div>
-//  )}
-//         </motion.div>
-//       </section>
-//     </>
-//   );
-// }
 "use client";
-import { useState } from "react";
+
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { FileText } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import Lnavbar from "@/components/Lnavbar";
+import FloatingSidebar from "@/components/dashboard/FloatingSidebar";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
+};
+
+function ResumeFilePreview({ file }) {
+  const previewUrl = useMemo(() => {
+    if (!file) return "";
+    return URL.createObjectURL(file);
+  }, [file]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const isPdf = file?.type === "application/pdf";
+
+  return (
+    <div className="rounded-2xl border bg-card p-4 shadow-sm lg:sticky lg:top-24">
+      <p className="text-sm font-medium text-muted-foreground">Resume Preview</p>
+      <p className="mt-1 truncate text-sm font-semibold">{file?.name || "No resume selected"}</p>
+
+      <div className="mt-4 flex h-[70vh] min-h-[400px] items-center justify-center overflow-hidden rounded-xl border bg-muted/30">
+        {!file && (
+          <div className="px-4 text-center text-sm text-muted-foreground">
+            Upload one or more files and choose a resume to preview.
+          </div>
+        )}
+
+        {file && isPdf && (
+          <iframe src={previewUrl} title="Resume preview" className="h-full w-full bg-white" />
+        )}
+
+        {file && !isPdf && (
+          <div className="flex flex-col items-center gap-3 px-6 text-center">
+            <FileText className="h-12 w-12 text-primary" />
+            <p className="text-sm font-medium">DOCX preview is not available in-browser.</p>
+            <p className="text-xs text-muted-foreground">This file can still be analyzed for ATS and AI feedback.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function ResumeATSTester() {
   const [jobDesc, setJobDesc] = useState("");
-  const [resumeFiles, setResumeFiles] = useState(/** @type {File[]} */ ([]));
+  const [resumeFiles, setResumeFiles] = useState([]);
+  const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [parsedResults, setParsedResults] = useState([]);
   const [aiData, setAiData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const fadeUp = {
-    hidden: { opacity: 0, y: 30 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
-  };
+  const selectedFile = resumeFiles[selectedFileIndex] || null;
+  const selectedResult = parsedResults.find((result) => result.filename === selectedFile?.name) || parsedResults[0] || null;
 
   const handleUpload = async () => {
     if (!resumeFiles.length || !jobDesc.trim()) {
-      setError(
-        "⚠️ Please upload at least one resume and paste a job description."
-      );
+      setError("Please upload at least one resume and paste a job description.");
       return;
     }
 
@@ -266,11 +82,7 @@ export default function ResumeATSTester() {
       const resultsArray = [];
       const aiResults = {};
 
-      // Loop through each resume separately
       for (const resume of resumeFiles) {
-        // ----------------------
-        // Step 1: Parse resume
-        // ----------------------
         const parseFormData = new FormData();
         parseFormData.append("resume", resume);
 
@@ -278,39 +90,39 @@ export default function ResumeATSTester() {
           method: "POST",
           body: parseFormData,
         });
-        if (!parseRes.ok)
-          throw new Error(`Failed to parse resume: ${resume.name}`);
+
+        if (!parseRes.ok) {
+          const parseJson = await parseRes.json().catch(() => ({}));
+          throw new Error(parseJson?.error || `Failed to parse resume: ${resume.name}`);
+        }
+
         const parsedResume = await parseRes.json();
 
-        // Extract plain text from parsed sections
         let resumeText = "";
         if (parsedResume.sections) {
-          for (const sec of Object.values(parsedResume.sections)) {
-            if (Array.isArray(sec)) resumeText += sec.join("\n") + "\n";
-            else if (typeof sec === "string") resumeText += sec + "\n";
+          for (const section of Object.values(parsedResume.sections)) {
+            if (Array.isArray(section)) resumeText += `${section.join("\n")}\n`;
+            else if (typeof section === "string") resumeText += `${section}\n`;
           }
         }
 
-        // ----------------------
-        // Step 2: ATS analysis for this resume only
-        // ----------------------
         const atsFormData = new FormData();
-        atsFormData.append("resume", resume); // send one resume at a time
+        atsFormData.append("resume", resume);
         atsFormData.append("job_desc", jobDesc);
 
         const atsRes = await fetch("/api/ats-test", {
           method: "POST",
           body: atsFormData,
         });
-        if (!atsRes.ok)
-          throw new Error(`ATS analysis failed for: ${resume.name}`);
-        const atsData = await atsRes.json();
 
+        if (!atsRes.ok) {
+          const atsJson = await atsRes.json().catch(() => ({}));
+          throw new Error(atsJson?.error || `ATS analysis failed for: ${resume.name}`);
+        }
+
+        const atsData = await atsRes.json();
         resultsArray.push({ ...atsData, filename: resume.name });
 
-        // ----------------------
-        // Step 3: AI analysis
-        // ----------------------
         const aiFormData = new FormData();
         aiFormData.append("resume_text", resumeText);
         aiFormData.append("job_description", jobDesc);
@@ -322,19 +134,21 @@ export default function ResumeATSTester() {
           method: "POST",
           body: aiFormData,
         });
-        if (!aiResponse.ok)
-          throw new Error(`AI analysis failed for: ${resume.name}`);
-        const aiJson = await aiResponse.json();
 
-        aiResults[resume.name] =
-          aiJson.ai_analysis || "No analysis text received";
+        if (!aiResponse.ok) {
+          const aiJson = await aiResponse.json().catch(() => ({}));
+          throw new Error(aiJson?.error || `AI analysis failed for: ${resume.name}`);
+        }
+
+        const aiJson = await aiResponse.json();
+        aiResults[resume.name] = aiJson.ai_analysis || "No analysis text received";
       }
 
       setParsedResults(resultsArray);
       setAiData(aiResults);
     } catch (err) {
-      console.error(err);
-      setError("❌ Something went wrong while processing.");
+      const message = err instanceof Error ? err.message : "Something went wrong while processing.";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -345,9 +159,7 @@ export default function ResumeATSTester() {
 
     const rows = parsedResults.map((res) => {
       const aiAnalysis = aiData[res.filename] || "";
-      const sectionsDetected = res.sections_detected
-        ? JSON.stringify(res.sections_detected)
-        : "";
+      const sectionsDetected = res.sections_detected ? JSON.stringify(res.sections_detected) : "";
       const matchedKeywords = res.keyword_match?.matched_keywords
         ? res.keyword_match.matched_keywords.join(", ")
         : "";
@@ -359,26 +171,19 @@ export default function ResumeATSTester() {
         Keyword_Match_Percent: res.keyword_match?.match_percent ?? "",
         Matched_Keywords: matchedKeywords,
         Sections_Detected: sectionsDetected,
-        AI_Analysis:
-          typeof aiAnalysis === "string"
-            ? aiAnalysis
-            : JSON.stringify(aiAnalysis),
-        Suggestions: Array.isArray(res.improvements)
-          ? res.improvements.join(" | ")
-          : "",
+        AI_Analysis: typeof aiAnalysis === "string" ? aiAnalysis : JSON.stringify(aiAnalysis),
+        Suggestions: Array.isArray(res.improvements) ? res.improvements.join(" | ") : "",
       };
     });
 
-    // Convert to CSV string
     const headers = Object.keys(rows[0]).join(",");
     const csvRows = rows.map((row) =>
       Object.values(row)
-        .map((val) => `"${String(val).replace(/"/g, '""')}"`) // escape quotes
+        .map((val) => `"${String(val).replace(/"/g, '""')}"`)
         .join(",")
     );
-    const csvContent = [headers, ...csvRows].join("\r\n");
 
-    // Trigger download
+    const csvContent = [headers, ...csvRows].join("\r\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -391,188 +196,149 @@ export default function ResumeATSTester() {
   return (
     <>
       <Lnavbar />
-      <section className="relative min-h-screen bg-gradient-to-br from-primary/10 via-background to-muted/40 dark:from-[#0d0d0f] dark:via-[#141416] dark:to-[#1a1a1c] flex items-center justify-center py-20 px-6 transition-colors duration-300">
+      <FloatingSidebar />
+      <section className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-muted/40 px-4 py-8 md:pl-24 sm:px-6 lg:px-10">
         <motion.div
-          className="w-full max-w-4xl mx-auto bg-white/90 dark:bg-[#1a1a1c]/90 backdrop-blur-xl rounded-2xl shadow-2xl p-10 space-y-8 border border-gray-100 dark:border-[#1d1d20]"
+          className="mx-auto grid w-full max-w-7xl gap-6 lg:grid-cols-2"
           initial="hidden"
           animate="show"
           variants={fadeUp}
         >
-          <motion.h1
-            className="text-4xl sm:text-5xl font-bold text-center text-gray-800 dark:text-[#f2f2f3]"
-            variants={fadeUp}
-          >
-            Resume ATS + AI Analyzer
-          </motion.h1>
-          <motion.p
-            className="text-center text-gray-600 dark:text-[#9a9a9e] text-lg"
-            variants={fadeUp}
-          >
-            Upload one or more{" "}
-            <span className="font-semibold text-primary">PDF</span> or{" "}
-            <span className="font-semibold text-primary">DOCX</span> resumes and
-            paste the job description to evaluate ATS compatibility and get AI
-            feedback.
-          </motion.p>
+          <ResumeFilePreview file={selectedFile} />
 
-          <motion.div className="flex flex-col space-y-6" variants={fadeUp}>
-            {/* Job Description */}
-            <div>
-              <label className="block mb-2 font-semibold text-gray-700 dark:text-[#f2f2f3]">
-                Job Description
+          <div className="rounded-2xl border bg-card p-6 shadow-sm sm:p-8">
+            <h1 className="text-3xl font-bold tracking-tight">ATS + AI Resume Tester</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Compare resumes against a job description and review ATS fit with AI feedback.
+            </p>
+
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-semibold">Job Description</label>
+                <textarea
+                  placeholder="Paste the target job description here..."
+                  className="h-36 w-full resize-none rounded-xl border bg-muted/20 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  value={jobDesc}
+                  onChange={(e) => setJobDesc(e.target.value)}
+                />
+              </div>
+
+              <label
+                htmlFor="resume-upload"
+                className="flex h-36 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed bg-muted/30 text-center transition hover:bg-muted/50"
+              >
+                <p className="font-medium">Upload resume file(s)</p>
+                <p className="mt-1 text-sm text-muted-foreground">Multiple PDF or DOCX files, up to 5MB each</p>
+                <input
+                  id="resume-upload"
+                  type="file"
+                  multiple
+                  accept=".pdf,.docx"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (!e.target.files) {
+                      setResumeFiles([]);
+                      return;
+                    }
+                    setResumeFiles(Array.from(e.target.files));
+                    setSelectedFileIndex(0);
+                    setParsedResults([]);
+                    setAiData({});
+                    setError("");
+                  }}
+                />
               </label>
-              <textarea
-                placeholder="Paste job description here..."
-                className="w-full p-4 border rounded-xl h-36 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none bg-gray-50 dark:bg-[#1a1a1c] dark:text-[#f2f2f3] dark:border-[#1d1d20]"
-                value={jobDesc}
-                onChange={(e) => setJobDesc(e.target.value)}
-              />
+
+              {resumeFiles.length > 0 && (
+                <div className="rounded-xl border p-3">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Uploaded Files
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {resumeFiles.map((resume, index) => (
+                      <button
+                        key={`${resume.name}-${index}`}
+                        type="button"
+                        onClick={() => setSelectedFileIndex(index)}
+                        className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                          selectedFileIndex === index ? "border-primary bg-primary/10" : "hover:bg-muted"
+                        }`}
+                      >
+                        {resume.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button size="lg" onClick={handleUpload} disabled={loading || !resumeFiles.length || !jobDesc.trim()} className="flex-1">
+                  {loading ? "Analyzing..." : "Analyze Resume(s)"}
+                </Button>
+
+                <Button size="lg" variant="outline" onClick={handleDownloadCSV} disabled={!parsedResults.length} className="flex-1">
+                  Download CSV
+                </Button>
+              </div>
+
+              {error && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
             </div>
 
-            {/* Resume Upload */}
-            <label
-              htmlFor="resume-upload"
-              className="w-full flex flex-col items-center justify-center h-44 border-2 border-dashed border-gray-300 dark:border-[#1d1d20] rounded-xl bg-gray-50 dark:bg-[#1a1a1c] hover:bg-gray-100 dark:hover:bg-[#232326] cursor-pointer transition"
-            >
-              <div className="text-center text-gray-600 dark:text-[#f2f2f3]">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-12 h-12 mx-auto text-primary mb-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 16.5V21h18v-4.5M12 3v12m0 0l4.5-4.5M12 15l-4.5-4.5"
-                  />
-                </svg>
-                <p className="font-medium">Click or drag to upload resume(s)</p>
-                <p className="text-sm text-gray-500 dark:text-[#9a9a9e] mt-1">
-                  Multiple PDF or DOCX files up to 5MB each
-                </p>
-              </div>
-              <input
-                id="resume-upload"
-                type="file"
-                multiple
-                accept=".pdf,.docx"
-                className="hidden"
-                onChange={(e) => {
-                  if (e.target.files)
-                    setResumeFiles(Array.from(e.target.files));
-                }}
-              />
-            </label>
-
-            {resumeFiles.length > 0 && (
-              <ul className="text-sm text-blue-700 dark:text-blue-400 font-medium space-y-1">
-                {resumeFiles.map((file, idx) => (
-                  <li key={idx}>✅ {file.name}</li>
-                ))}
-              </ul>
-            )}
-
-            {/* Analyze Button */}
-            <Button
-              size="lg"
-              onClick={handleUpload}
-              disabled={loading || !resumeFiles || !jobDesc.trim()}
-              className="px-8 text-lg font-semibold shadow-md hover:scale-105 transition"
-            >
-              {loading ? "Analyzing..." : "Analyze Resume(s)"}
-            </Button>
             {parsedResults.length > 0 && (
-              <Button
-                size="lg"
-                onClick={handleDownloadCSV}
-                className="px-8 text-lg font-semibold shadow-md hover:scale-105 transition mt-4"
-              >
-                Download CSV
-              </Button>
-            )}
+              <div className="mt-8 space-y-5">
+                <div className="rounded-xl border p-4">
+                  <h2 className="text-sm font-semibold">Score Snapshot</h2>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {parsedResults.map((result) => (
+                      <div key={result.filename} className="rounded-lg border bg-muted/20 p-3 text-sm">
+                        <p className="truncate font-medium">{result.filename}</p>
+                        <p className="mt-1 text-muted-foreground">ATS Score: {result.ats_score ?? "N/A"}%</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-            {error && (
-              <div className="text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800 p-3 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
-          </motion.div>
+                {selectedResult && (
+                  <div className="space-y-4 rounded-xl border p-4">
+                    <h2 className="text-lg font-semibold">Detailed Result: {selectedResult.filename}</h2>
 
-          {/* Results */}
-          {!loading &&
-            parsedResults.length > 0 &&
-            parsedResults.map((parsed, idx) => (
-              <motion.div
-                key={idx}
-                className="space-y-6 mt-8 p-6 bg-gray-50 dark:bg-[#1a1a1c] rounded-xl border border-gray-100 dark:border-[#1d1d20] shadow-sm"
-                variants={fadeUp}
-              >
-                <h2 className="text-2xl font-bold text-primary dark:text-primary/80">
-                  {parsed.filename || `Resume ${idx + 1}`}
-                </h2>
-
-                <p className="text-lg">
-                  <strong>ATS Score:</strong>{" "}
-                  <span className="text-blue-600 font-semibold">
-                    {parsed.ats_score ?? "N/A"}%
-                  </span>
-                </p>
-                <p>
-                  <strong>
-                    {" "}
-                    Section Detected: <br />
-                  </strong>{" "}
-                  {typeof parsed.sections_detected === "string"
-                    ? parsed.sections_detected
-                    : JSON.stringify(parsed.sections_detected, null, 2)}
-                </p>
-
-                <p>
-                  <strong>Semantic Similarity:</strong>{" "}
-                  {parsed.semantic_similarity}%
-                </p>
-
-                <p>
-                  <strong>Keyword Match:</strong>{" "}
-                  {parsed.keyword_match?.match_percent ?? 0}%
-                  <br />
-                  {parsed.keyword_match?.matched_keywords &&
-                    (Array.isArray(parsed.keyword_match.matched_keywords)
-                      ? parsed.keyword_match.matched_keywords.join(", ")
-                      : JSON.stringify(parsed.keyword_match.matched_keywords))}
-                </p>
-
-                {Array.isArray(parsed.improvements) &&
-                  parsed.improvements.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold mb-1 text-gray-700 dark:text-[#f2f2f3]">
-                        Suggestions
-                      </h3>
-                      <ul className="list-disc pl-6 text-sm space-y-1">
-                        {parsed.improvements.map((s, i) => (
-                          <li key={i}>{s}</li>
-                        ))}
-                      </ul>
+                    <div className="grid gap-2 text-sm sm:grid-cols-2">
+                      <p><span className="font-semibold">ATS Score:</span> {selectedResult.ats_score ?? "N/A"}%</p>
+                      <p><span className="font-semibold">Semantic Similarity:</span> {selectedResult.semantic_similarity ?? "N/A"}%</p>
+                      <p><span className="font-semibold">Keyword Match:</span> {selectedResult.keyword_match?.match_percent ?? 0}%</p>
+                      <p><span className="font-semibold">Matched Keywords:</span> {selectedResult.keyword_match?.matched_keywords?.join(", ") || "-"}</p>
                     </div>
-                  )}
 
-                {aiData[parsed.filename] && (
-                  <div className="p-4 bg-primary/10 dark:bg-primary/20 rounded-xl border border-primary/20 dark:border-primary/40 mt-3">
-                    <h3 className="font-semibold text-primary dark:text-primary/80 mb-2">
-                      AI Analysis
-                    </h3>
-                    <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-[#f2f2f3]">
-                      {typeof aiData[parsed.filename] === "string"
-                        ? aiData[parsed.filename]
-                        : JSON.stringify(aiData[parsed.filename], null, 2)}
-                    </pre>
+                    {Array.isArray(selectedResult.improvements) && selectedResult.improvements.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-semibold">Suggestions</h3>
+                        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                          {selectedResult.improvements.map((item, idx) => (
+                            <li key={idx}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {aiData[selectedResult.filename] && (
+                      <div className="rounded-lg border bg-primary/5 p-3">
+                        <h3 className="text-sm font-semibold">AI Analysis</h3>
+                        <pre className="mt-2 whitespace-pre-wrap text-xs text-muted-foreground">
+                          {typeof aiData[selectedResult.filename] === "string"
+                            ? aiData[selectedResult.filename]
+                            : JSON.stringify(aiData[selectedResult.filename], null, 2)}
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 )}
-              </motion.div>
-            ))}
+              </div>
+            )}
+          </div>
         </motion.div>
       </section>
     </>

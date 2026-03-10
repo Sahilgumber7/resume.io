@@ -1,54 +1,34 @@
 'use client'
 
-import React, { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
+import { LoaderCircle } from 'lucide-react'
 import { useParams } from 'next/navigation'
+import { toast } from 'sonner'
+
+import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { LoaderCircle } from 'lucide-react'
-import { ResumeInfoContext } from '@/components/ResumeInfoContext'
-import { toast } from 'sonner'
+import ProfileSectionDropdown from './ProfileSectionDropdown'
+import FormCard from './FormCard'
 
-function Projects() {
+const EMPTY_PROJECT = { title: '', description: '' }
+
+export default function Projects() {
   const [loading, setLoading] = useState(false)
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
-  const { resumeId } = useParams() // ✅ FIX: useParams instead of useSearchParams
-
+  const { resumeId } = useParams()
   const [projects, setProjects] = useState([])
 
-  // ✅ Fetch resume if context is empty
   useEffect(() => {
-    const fetchResume = async () => {
-      if (!resumeId) return
-      try {
-        const res = await fetch(`/api/resumes/${resumeId}`)
-        if (!res.ok) throw new Error('Failed to fetch resume data')
-        const data = await res.json()
-        setResumeInfo(data)
-        setProjects(data.projects || [])
-      } catch (error) {
-        console.error('Failed to fetch resume info:', error)
-        toast.error('Could not load resume projects')
-      }
-    }
+    setProjects(resumeInfo?.projects || [])
+  }, [resumeInfo?.projects])
 
-    if (!resumeInfo || Object.keys(resumeInfo).length === 0) {
-      fetchResume()
-    } else {
-      setProjects(resumeInfo.projects || [])
-    }
-  }, [resumeId, resumeInfo, setResumeInfo])
-
-  // ✅ Context sync helper
   const syncToContext = (newList) => {
     setProjects(newList)
-    setResumeInfo((prev) => ({
-      ...prev,
-      projects: newList,
-    }))
+    setResumeInfo((prev) => ({ ...(prev || {}), projects: newList }))
   }
 
-  // ✅ Input change handler
   const handleChange = (e, index) => {
     const { name, value } = e.target
     const updated = [...projects]
@@ -57,18 +37,23 @@ function Projects() {
   }
 
   const addNewProject = () => {
-    const updated = [...projects, { title: '', description: '' }]
-    syncToContext(updated)
+    syncToContext([...projects, { ...EMPTY_PROJECT }])
   }
 
   const removeProject = () => {
-    if (projects.length > 0) {
-      const updated = projects.slice(0, -1)
-      syncToContext(updated)
-    }
+    if (projects.length === 0) return
+    syncToContext(projects.slice(0, -1))
   }
 
-  // ✅ Save handler
+  const applyProfileProjects = (items, mode) => {
+    const normalized = (items || []).map((item) => ({
+      title: item.title || '',
+      description: item.description || '',
+    }))
+    const updated = mode === 'replace' ? normalized : [...projects, ...normalized]
+    syncToContext(updated)
+  }
+
   const onSave = async () => {
     if (!resumeId) {
       toast.error('Resume ID not found')
@@ -76,73 +61,60 @@ function Projects() {
     }
 
     setLoading(true)
-
     try {
-      const cleanedProjects = projects.map(({ id, _id, ...rest }) => rest)
-
+      const cleanedProjects = projects.map((item) => {
+        const copy = { ...item }
+        delete copy.id
+        delete copy._id
+        return copy
+      })
       const res = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projects: cleanedProjects }),
       })
-
-      if (!res.ok) throw new Error()
-
-      setResumeInfo((prev) => ({ ...prev, projects: cleanedProjects }))
-      toast.success('Projects updated Succesfully!')
+      if (!res.ok) throw new Error('Failed to update projects')
+      setResumeInfo((prev) => ({ ...(prev || {}), projects: cleanedProjects }))
+      toast.success('Projects saved')
     } catch (error) {
       console.error(error)
-      toast.error('Failed to update projects')
+      toast.error('Failed to save projects')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
-      <h2 className="font-bold text-lg">Projects</h2>
-      <p>Add your projects and descriptions</p>
+    <FormCard
+      title="Projects"
+      description="Add projects that show your practical impact."
+    >
+      <ProfileSectionDropdown section="projects" onApply={applyProfileProjects} />
 
       {projects.map((item, index) => (
-        <div key={index} className="grid gap-3 border p-3 my-5 rounded-lg">
+        <div key={index} className="my-4 grid gap-3 rounded-xl border p-3">
           <div>
-            <label>Project Title</label>
-            <Input
-              name="title"
-              value={item.title}
-              onChange={(e) => handleChange(e, index)}
-            />
+            <label className="text-xs">Project Title</label>
+            <Input name="title" value={item.title} onChange={(e) => handleChange(e, index)} />
           </div>
           <div>
-            <label>Description</label>
-            <Textarea
-              name="description"
-              value={item.description}
-              onChange={(e) => handleChange(e, index)}
-            />
+            <label className="text-xs">Description</label>
+            <Textarea name="description" value={item.description} onChange={(e) => handleChange(e, index)} />
           </div>
         </div>
       ))}
 
-      <div className="flex justify-between">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex gap-2">
-          <Button variant="outline" onClick={addNewProject}>
-            + Add More Projects
-          </Button>
-          <Button
-            variant="outline"
-            onClick={removeProject}
-            disabled={projects.length === 0}
-          >
+          <Button variant="outline" onClick={addNewProject}>+ Add Project</Button>
+          <Button variant="outline" onClick={removeProject} disabled={projects.length === 0}>
             - Remove
           </Button>
         </div>
         <Button disabled={loading} onClick={onSave}>
-          {loading ? <LoaderCircle className="animate-spin w-4 h-4" /> : 'Save'}
+          {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : 'Save Projects'}
         </Button>
       </div>
-    </div>
+    </FormCard>
   )
 }
-
-export default Projects

@@ -51,10 +51,10 @@ function ResumeCardItem({ resume, refreshData }) {
   };
 
   return (
-    <div className="group transition-transform hover:scale-105 duration-300 cursor-pointer">
+    <div className="group cursor-pointer transition-transform duration-300 hover:scale-[1.015]">
       {/* Card Container */}
       <div
-        className="rounded-lg border border-dashed shadow-sm hover:shadow-md overflow-hidden bg-secondary"
+        className="surface-card overflow-hidden rounded-2xl border-dashed"
         style={{ borderColor: resume?.themeColor }}
       >
         {/* Image Section */}
@@ -71,7 +71,7 @@ function ResumeCardItem({ resume, refreshData }) {
         </Link>
 
         {/* Bottom Section */}
-        <div className="flex justify-between items-center p-3 border-t bg-background">
+        <div className="flex items-center justify-between border-t bg-background/80 p-3">
           <h2 className="text-sm font-medium truncate">{resume.title}</h2>
 
           {/* Dropdown */}
@@ -79,7 +79,7 @@ function ResumeCardItem({ resume, refreshData }) {
             <DropdownMenuTrigger asChild>
               <MoreVertical className="w-5 h-5 cursor-pointer opacity-90 hover:opacity-100 transition" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-40 rounded-xl border border-border/50 shadow-lg bg-background/90 backdrop-blur-lg">
+            <DropdownMenuContent className="w-40 rounded-2xl border border-border/50 bg-background/90 shadow-lg backdrop-blur-lg">
               <DropdownMenuItem
                 onClick={() => router.push(`/dashboard/resume/${resume._id}/edit`)}
               >

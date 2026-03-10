@@ -1,155 +1,114 @@
 'use client'
 
-import React, { useContext, useEffect, useState } from 'react'
-import { Input } from '@/components/ui/input'
+import { useContext, useEffect, useState } from 'react'
+import { LoaderCircle } from 'lucide-react'
 import { Rating } from '@smastrom/react-rating'
 import '@smastrom/react-rating/style.css'
-import { Button } from '@/components/ui/button'
-import { LoaderCircle } from 'lucide-react'
-import { ResumeInfoContext } from '@/components/ResumeInfoContext'
 import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
 
+import { ResumeInfoContext } from '@/components/ResumeInfoContext'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import FormCard from './FormCard'
 
-function Skills({ enabledNext }) {
+const EMPTY_SKILL = { name: '', rating: 0 }
+
+export default function Skills() {
   const { resumeId } = useParams()
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
   const [loading, setLoading] = useState(false)
-
-  const [skillsList, setSkillsList] = useState([{ name: '', rating: 0 }])
+  const [skillsList, setSkillsList] = useState([EMPTY_SKILL])
 
   useEffect(() => {
-    const fetchResume = async () => {
-      if (!resumeId) return
-      try {
-        const res = await fetch(`/api/resumes/${resumeId}`)
-        if (!res.ok) throw new Error('Failed to fetch resume data')
-        const data = await res.json()
-        setResumeInfo(data)
-        if (Array.isArray(data.skills)) {
-          setSkillsList(data.skills)
-        }
-      } catch (error) {
-        console.error('Failed to fetch resume info:', error)
-        toast.error('Could not load resume details')
-      }
-    }
+    const skills = Array.isArray(resumeInfo?.skills) && resumeInfo.skills.length > 0
+      ? resumeInfo.skills
+      : [EMPTY_SKILL]
+    setSkillsList(skills)
+  }, [resumeInfo?.skills])
 
-    if (!resumeInfo || Object.keys(resumeInfo).length === 0) {
-      fetchResume()
-    } else {
-      if (Array.isArray(resumeInfo.skills)) {
-        setSkillsList(resumeInfo.skills)
-      }
-    }
-  }, [resumeId, resumeInfo, setResumeInfo])
-
-  // ✅ Defensive check for enabledNext
-  useEffect(() => {
-    if (typeof enabledNext === 'function') {
-      enabledNext(false)
-    }
-  }, [enabledNext])
+  const syncSkills = (updatedSkills) => {
+    setSkillsList(updatedSkills)
+    setResumeInfo((prev) => ({ ...(prev || {}), skills: updatedSkills }))
+  }
 
   const handleChange = (index, name, value) => {
-    const updatedSkills = [...skillsList]
-    updatedSkills[index][name] = value
-    setSkillsList(updatedSkills)
-
-    setResumeInfo(prev => ({
-      ...prev,
-      skills: updatedSkills,
-    }))
+    const updated = [...skillsList]
+    updated[index] = { ...updated[index], [name]: value }
+    syncSkills(updated)
   }
 
   const onSave = async () => {
     if (!resumeId) {
-      toast.error('Resume ID is missing from the URL')
+      toast.error('Resume ID is missing')
       return
     }
 
     setLoading(true)
     try {
-      const cleanedSkills = skillsList.map(({ id, ...rest }) => rest)
-
+      const cleanedSkills = skillsList.map((item) => {
+        const copy = { ...item }
+        delete copy.id
+        delete copy._id
+        return copy
+      })
       const res = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ skills: cleanedSkills }),
       })
-
-      if (!res.ok) throw new Error()
-
-      toast.success('Skills updated successfully!')
-
-      // ✅ Defensive check here too
-      if (typeof enabledNext === 'function') {
-        enabledNext(true)
-      }
-    } catch (err) {
-      console.error('Failed to update skills:', err)
-      toast.error('Failed to update skills.')
+      if (!res.ok) throw new Error('Failed to update skills')
+      setResumeInfo((prev) => ({ ...(prev || {}), skills: cleanedSkills }))
+      toast.success('Skills saved')
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to save skills')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
-      <h2 className="font-bold text-lg">Skills</h2>
-      <p className="text-muted-foreground mb-4">Add your top professional skills</p>
-
+    <FormCard
+      title="Skills"
+      description="List your strongest skills and add a quick proficiency rating."
+    >
       <div className="space-y-3">
         {skillsList.map((item, index) => (
-          <div key={index} className="flex justify-between items-center gap-3 border rounded-lg p-3">
+          <div key={index} className="flex flex-col gap-3 rounded-xl border p-3 sm:flex-row sm:items-center">
             <div className="w-full">
               <label className="text-xs">Skill Name</label>
-              <Input
-                value={item.name}
-                onChange={(e) => handleChange(index, 'name', e.target.value)}
-              />
+              <Input value={item.name} onChange={(e) => handleChange(index, 'name', e.target.value)} />
             </div>
-            <div className="flex items-center">
+            <div className="min-w-32">
+              <label className="text-xs">Rating</label>
               <Rating
                 style={{ maxWidth: 120 }}
                 value={item.rating}
-                onChange={(v) => handleChange(index, 'rating', v)}
+                onChange={(value) => handleChange(index, 'rating', value)}
               />
             </div>
           </div>
         ))}
       </div>
 
-      <div className="flex justify-between items-center mt-4">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => {
-              const newSkills = [...skillsList, { name: '', rating: 0 }]
-              setSkillsList(newSkills)
-              setResumeInfo(prev => ({ ...prev, skills: newSkills }))
-            }}
-          >
+          <Button variant="outline" onClick={() => syncSkills([...skillsList, { ...EMPTY_SKILL }])}>
             + Add Skill
           </Button>
           <Button
             variant="outline"
-            onClick={() => {
-              const newSkills = skillsList.slice(0, -1)
-              setSkillsList(newSkills)
-              setResumeInfo(prev => ({ ...prev, skills: newSkills }))
-            }}
-            disabled={skillsList.length === 1}
+            onClick={() => syncSkills(skillsList.slice(0, -1))}
+            disabled={skillsList.length <= 1}
           >
             - Remove
           </Button>
         </div>
         <Button disabled={loading} onClick={onSave}>
-          {loading ? <LoaderCircle className="animate-spin w-4 h-4" /> : 'Save'}
+          {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : 'Save Skills'}
         </Button>
       </div>
-    </div>
+    </FormCard>
   )
 }
-
-export default Skills

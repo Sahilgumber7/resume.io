@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning >
-    <ClerkProvider>
+    <ClerkProvider signInUrl="/auth/sign-in" signUpUrl="/auth/sign-up">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SyncUser />

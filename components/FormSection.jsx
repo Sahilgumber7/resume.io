@@ -1,81 +1,118 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import PersonalDetail from './forms/PersonalDetail'
-import Summary from './forms/Summary'
-import Experience from './forms/Experience'
+import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { ArrowLeft, ArrowRight, CheckCircle2, Eye } from 'lucide-react'
+
 import Education from './forms/Education'
+import Experience from './forms/Experience'
+import PersonalDetail from './forms/PersonalDetail'
+import Projects from './forms/Project'
 import Skills from './forms/Skills'
-import Projects from './forms/Project' // ✅ Corrected import
+import Summary from './forms/Summary'
 import ThemeColor from './ThemeColor'
-
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, ArrowRight, Home } from 'lucide-react'
-import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
 
-function FormSection() {
-  const [activeFormIndex, setActiveFormIndex] = useState(1)
-  const [enableNext, setEnableNext] = useState(true)
+const STEP_COMPONENTS = [
+  { id: 'personal', label: 'Personal', component: PersonalDetail },
+  { id: 'summary', label: 'Summary', component: Summary },
+  { id: 'experience', label: 'Experience', component: Experience },
+  { id: 'education', label: 'Education', component: Education },
+  { id: 'skills', label: 'Skills', component: Skills },
+  { id: 'projects', label: 'Projects', component: Projects },
+]
 
-  const params = useParams()
+export default function FormSection({ resumeId }) {
+  const [activeStepIndex, setActiveStepIndex] = useState(0)
   const router = useRouter()
-  const resumeId = params?.resumeId
 
-  // ✅ Redirect to preview after step 6 (i.e., Projects)
-  useEffect(() => {
-    if (activeFormIndex === 7) {
+  const totalSteps = STEP_COMPONENTS.length
+  const activeStep = STEP_COMPONENTS[activeStepIndex]
+  const ActiveStepComponent = activeStep.component
+  const progressPercent = useMemo(
+    () => Math.round(((activeStepIndex + 1) / totalSteps) * 100),
+    [activeStepIndex, totalSteps]
+  )
+
+  const onNext = () => {
+    if (activeStepIndex === totalSteps - 1) {
       router.push(`/my-resume/${resumeId}/view`)
+      return
     }
-  }, [activeFormIndex, resumeId, router])
+    setActiveStepIndex((prev) => prev + 1)
+  }
+
+  const onPrevious = () => {
+    setActiveStepIndex((prev) => Math.max(prev - 1, 0))
+  }
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex gap-5">
-          <Link href="/dashboard">
-            <Button>
-              <Home />
+    <div className="space-y-4">
+      <div className="surface-card p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Builder Flow</p>
+            <h2 className="text-lg font-semibold">
+              Step {activeStepIndex + 1} of {totalSteps}: {activeStep.label}
+            </h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <ThemeColor />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push(`/my-resume/${resumeId}/view`)}
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              Preview
             </Button>
-          </Link>
-          <ThemeColor />
+          </div>
         </div>
 
-        <div className="flex gap-2">
-          {activeFormIndex > 1 && (
-            <Button size="sm" onClick={() => setActiveFormIndex((i) => i - 1)}>
-              <ArrowLeft />
-            </Button>
-          )}
-          <Button
-            disabled={!enableNext}
-            className="flex gap-2"
-            size="sm"
-            onClick={() => setActiveFormIndex((i) => i + 1)}
-          >
-            Next
-            <ArrowRight />
-          </Button>
+        <div className="mt-4 h-2 rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-primary transition-all duration-300"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {STEP_COMPONENTS.map((step, index) => (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveStepIndex(index)}
+              className={`inline-flex items-center rounded-full border px-3 py-1 text-xs ${
+                index === activeStepIndex
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border bg-background text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              {index < activeStepIndex ? (
+                <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+              ) : null}
+              {step.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Form Steps */}
-      {activeFormIndex === 1 ? (
-        <PersonalDetail enabledNext={setEnableNext} />
-      ) : activeFormIndex === 2 ? (
-        <Summary enabledNext={setEnableNext} />
-      ) : activeFormIndex === 3 ? (
-        <Experience />
-      ) : activeFormIndex === 4 ? (
-        <Education />
-      ) : activeFormIndex === 5 ? (
-        <Skills />
-      ) : activeFormIndex === 6 ? (
-        <Projects />
-      ) : null}
+      <ActiveStepComponent />
+
+      <div className="flex items-center justify-between gap-2 pt-1">
+        <Button
+          variant="outline"
+          onClick={onPrevious}
+          disabled={activeStepIndex === 0}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Previous
+        </Button>
+        <Button onClick={onNext}>
+          {activeStepIndex === totalSteps - 1 ? 'Finish & View Resume' : 'Next Step'}
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
     </div>
   )
 }
-
-export default FormSection

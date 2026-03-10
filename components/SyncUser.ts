@@ -9,6 +9,9 @@ export default function SyncUser() {
   useEffect(() => {
     if (!user) return;
 
+    const email = user.primaryEmailAddress?.emailAddress;
+    if (!email) return;
+
     fetch('/api/create-user-if-doesnt-exist', {
       method: 'POST',
       headers: {
@@ -16,10 +19,12 @@ export default function SyncUser() {
       },
       body: JSON.stringify({
         clerkId: user.id,
-        email: user.primaryEmailAddress?.emailAddress,
+        email,
         name: user.fullName,
         imageUrl: user.imageUrl,
       }),
+    }).catch((error) => {
+      console.error('[SyncUser] failed to sync user:', error);
     });
   }, [user]);
 

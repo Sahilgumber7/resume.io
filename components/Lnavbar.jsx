@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Menu } from 'lucide-react';
+import { createDefaultResumePayload } from '@/lib/resume-defaults';
 
 export default function Lnavbar() {
   const { user, isSignedIn } = useUser();
@@ -30,23 +31,13 @@ export default function Lnavbar() {
 
   const onCreate = async () => {
     if (!resumeTitle) return;
+    if (!isSignedIn || !user) {
+      toast.error('Please sign in to create a resume.');
+      return;
+    }
     setLoading(true);
 
-    const data = {
-      title: resumeTitle,
-      userClerkId: isSignedIn ? user.id : 'guest',
-      fullName: isSignedIn ? user.fullName || '' : '',
-      jobTitle: '',
-      email: isSignedIn ? user.primaryEmailAddress?.emailAddress || '' : '',
-      phone: '',
-      address: '',
-      themeColor: '#000000',
-      summary: '',
-      education: [],
-      experience: [],
-      skills: [],
-      projects: [],
-    };
+    const data = createDefaultResumePayload(resumeTitle, user);
 
     try {
       const res = await fetch('/api/resumes', {
@@ -71,15 +62,15 @@ export default function Lnavbar() {
   };
 
   return (
-    <nav className="w-full sticky top-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/50 shadow-sm">
-      <div className="flex justify-between items-center px-4 md:px-10 py-3">
+    <nav className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/75 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
         {/* Logo */}
-        <Link href="/" className="text-xl md:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+        <Link href="/" className="text-xl font-semibold tracking-tight md:text-2xl">
           resume<span className="text-muted-foreground">.io</span>
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden items-center gap-2 rounded-full border bg-background/85 p-1.5 md:flex">
           <Button variant="ghost" size="sm" onClick={handleBuilderClick}>
             Builder
           </Button>
@@ -99,10 +90,16 @@ export default function Lnavbar() {
               <Button variant="ghost" size="sm">Dashboard</Button>
             </Link>
           )}
+          {isSignedIn && (
+            <Link href="/dashboard/profile">
+              <Button variant="ghost" size="sm">Profile</Button>
+            </Link>
+          )}
+          <div className="mx-1 h-6 w-px bg-border" />
           <ThemeToggle />
           {!isSignedIn && (
             <SignInButton mode="modal">
-              <Button size="sm">Sign In</Button>
+              <Button size="sm" className="rounded-full">Sign In</Button>
             </SignInButton>
           )}
           {isSignedIn && (
@@ -112,7 +109,7 @@ export default function Lnavbar() {
 
         {/* Mobile Menu Toggle */}
         <button
-          className="md:hidden p-2 rounded-lg hover:bg-muted/30 transition"
+          className="rounded-lg p-2 transition hover:bg-muted/30 md:hidden"
           onClick={() => setMobileMenu(!mobileMenu)}
         >
           <Menu className="w-6 h-6" />
@@ -121,13 +118,18 @@ export default function Lnavbar() {
 
       {/* Mobile Dropdown */}
       {mobileMenu && (
-        <div className="md:hidden px-4 py-3 flex flex-col gap-3 border-t border-border/50 bg-background/80 backdrop-blur-lg">
+        <div className="flex flex-col gap-3 border-t border-border/50 bg-background/85 px-4 py-3 backdrop-blur-lg md:hidden">
           <Button variant="ghost" size="sm" onClick={handleBuilderClick}>
             Builder
           </Button>
           {isSignedIn && (
             <Link href="/dashboard">
               <Button variant="ghost" size="sm">Dashboard</Button>
+            </Link>
+          )}
+          {isSignedIn && (
+            <Link href="/dashboard/profile">
+              <Button variant="ghost" size="sm">Profile</Button>
             </Link>
           )}
           <ThemeToggle />

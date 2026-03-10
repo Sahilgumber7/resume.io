@@ -1,56 +1,42 @@
 'use client'
 
-import { FileText } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { Card } from '@/components/ui/card'
+import { useMemo } from 'react'
 import AddResume from '@/components/AddResume'
 import ResumeCardItem from '@/components/ResumeCardItem'
 
 export default function MyResumes({ resumes, refreshData }) {
-  const fadeUp = {
-    hidden: { opacity: 0, y: 40 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
-  }
+  const uniqueResumes = useMemo(() => {
+    const seen = new Set()
+    return resumes.filter((resume) => {
+      const id = String(resume?._id || '')
+      if (!id) return true
+      if (seen.has(id)) return false
+      seen.add(id)
+      return true
+    })
+  }, [resumes])
 
   return (
-    <motion.section
-      className="mb-16"
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true }}
-      variants={fadeUp}
-    >
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-3xl font-semibold flex items-center gap-2">
-          <FileText className="w-7 h-7 text-primary" /> My Resumes
-        </h3>
-        <span className="text-muted-foreground text-sm">
-          {resumes.length} total
-        </span>
+    <section className="mb-10">
+      <div className="mb-5 flex items-center justify-between">
+        <h2 className="text-2xl font-semibold sm:text-3xl">My Resumes</h2>
+        <span className="text-sm text-muted-foreground">{uniqueResumes.length} total</span>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
         <AddResume />
-        {resumes.length > 0 ? (
-          resumes.map((resume, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
-            >
-              <ResumeCardItem resume={resume} refreshData={refreshData} />
-            </motion.div>
-          ))
-        ) : (
-          [1, 2, 3, 4].map((_, index) => (
-            <Card
-              key={index}
-              className="h-[280px] rounded-3xl bg-muted/40 border border-border/50 animate-pulse"
-            />
-          ))
-        )}
+        {uniqueResumes.map((resume, index) => (
+          <div key={resume?._id || `resume-${index}`}>
+            <ResumeCardItem resume={resume} refreshData={refreshData} />
+          </div>
+        ))}
       </div>
-    </motion.section>
+
+      {uniqueResumes.length === 0 && (
+        <div className="mt-4 rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
+          No resumes yet. Use the add card to create your first resume.
+        </div>
+      )}
+    </section>
   )
 }

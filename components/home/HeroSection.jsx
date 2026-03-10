@@ -14,47 +14,48 @@ export default function HeroSection() {
   }
 
   return (
-    <section className="relative isolate overflow-hidden bg-gradient-to-br from-primary/10 via-background to-muted/40 py-28 sm:py-40">
+    <section className="relative isolate overflow-hidden py-24 sm:py-36">
       <div
-        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent blur-3xl"
+        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-muted via-background to-background"
         aria-hidden="true"
       />
       <motion.div
-        className="mx-auto max-w-5xl px-6 lg:px-8 text-center"
+        className="mx-auto max-w-6xl px-6 text-center lg:px-8"
         initial="hidden"
         animate="show"
         variants={fadeUp}
       >
         <motion.h1
-          className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight"
+          className="mx-auto max-w-4xl text-5xl font-semibold leading-tight sm:text-6xl lg:text-7xl"
           variants={fadeUp}
         >
-          Build a Job-Winning Resume
+          Build your resume in minutes.
         </motion.h1>
         <motion.p
-          className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto"
+          className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-xl"
           variants={fadeUp}
         >
-          Stand out from the competition with modern, ATS-friendly templates and an intuitive editor.
+          Create, edit, and download a clean resume that is ready for ATS.
         </motion.p>
         <motion.div
-          className="mt-10 flex flex-col sm:flex-row gap-4 justify-center"
+          className="mt-10 flex flex-col justify-center gap-4 sm:flex-row"
           variants={fadeUp}
         >
           <Button
             size="lg"
-            className="text-lg px-8 shadow-lg hover:scale-105 transition"
+            className="rounded-full px-8 text-base"
             onClick={() => router.push("/dashboard")}
           >
-            Build My Resume
+            Get Started
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
           <Button
             size="lg"
             variant="outline"
-            className="text-lg px-8 hover:bg-primary/10 transition"
+            className="rounded-full px-8 text-base"
+            onClick={() => router.push("/dashboard/profile")}
           >
-            Browse Templates
+            View Templates
           </Button>
         </motion.div>
       </motion.div>

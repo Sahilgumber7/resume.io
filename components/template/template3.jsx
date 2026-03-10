@@ -1,8 +1,13 @@
 import React from "react";
 
 export default function Template3({ resumeInfo }) {
+  const visibility = resumeInfo?.sectionVisibility || {};
+  const showEducation = visibility.education !== false;
+  const showExperience = visibility.experience !== false;
+  const showProjects = visibility.projects !== false;
+
   return (
-    <main className="max-w-[960px] mx-auto my-8 p-8 bg-white font-sans">
+    <main className="my-0 w-full bg-white p-6 font-sans sm:p-8">
       <header
         className="grid gap-2 border-b-4 pb-4"
         style={{ borderColor: resumeInfo?.themeColor || "#000" }}
@@ -58,7 +63,7 @@ export default function Template3({ resumeInfo }) {
 
       <div className="grid gap-8 mt-8 md:grid-cols-[2fr_1fr]">
         <div>
-          {resumeInfo?.education?.length > 0 && (
+          {showEducation && resumeInfo?.education?.length > 0 && (
             <section>
               <h2 className="uppercase font-bold text-sm mb-3 text-slate-900 tracking-wide">
                 Education
@@ -83,7 +88,7 @@ export default function Template3({ resumeInfo }) {
             </section>
           )}
 
-          {resumeInfo?.experience?.length > 0 && (
+          {showExperience && resumeInfo?.experience?.length > 0 && (
             <section>
               <h2 className="uppercase font-bold text-sm mb-3 text-slate-900 tracking-wide">
                 Experience
@@ -109,7 +114,7 @@ export default function Template3({ resumeInfo }) {
             </section>
           )}
 
-          {resumeInfo?.projects?.length > 0 && (
+          {showProjects && resumeInfo?.projects?.length > 0 && (
             <section>
               <h2 className="uppercase font-bold text-sm mb-3 text-slate-900 tracking-wide">
                 Projects

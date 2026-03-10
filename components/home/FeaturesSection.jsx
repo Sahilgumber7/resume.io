@@ -24,8 +24,8 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section className="py-24 bg-muted/20">
-      <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
+    <section className="py-20">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 md:grid-cols-3">
         {features.map((feature, i) => (
           <motion.div
             key={i}
@@ -34,10 +34,10 @@ export default function FeaturesSection() {
             transition={{ duration: 0.5, delay: i * 0.2 }}
             viewport={{ once: true }}
           >
-            <Card className="bg-background/70 backdrop-blur-lg border border-border/50 shadow-md hover:shadow-xl transition rounded-3xl">
+            <Card className="surface-card rounded-[1.6rem] transition hover:-translate-y-1 hover:shadow-lg">
               <CardContent className="p-8 text-center">
                 <div className="mb-6 flex justify-center">{feature.icon}</div>
-                <h3 className="text-2xl font-semibold mb-3">{feature.title}</h3>
+                <h3 className="mb-3 text-2xl font-semibold">{feature.title}</h3>
                 <p className="text-muted-foreground">{feature.desc}</p>
               </CardContent>
             </Card>

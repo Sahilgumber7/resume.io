@@ -9,21 +9,25 @@ import ProjectPreview from "@/components/preview/ProjectPreview";
 
 export default function Template1({ resumeInfo }) {
   if (!resumeInfo) return null;
+  const visibility = resumeInfo?.sectionVisibility || {};
+  const showEducation = visibility.education !== false;
+  const showExperience = visibility.experience !== false;
+  const showProjects = visibility.projects !== false;
 
   return (
     <div
-      className="shadow-lg h-full p-14 border-t-[20px] bg-white text-black dark:bg-white dark:text-black"
+      className="h-full w-full border-t-[20px] bg-white p-6 text-black shadow-lg sm:p-8 md:p-10 dark:bg-white dark:text-black"
       style={{ borderColor: resumeInfo?.themeColor }}
     >
       <PersonalDetailPreview resumeInfo={resumeInfo} />
       <SummaryPreview resumeInfo={resumeInfo} />
-      {resumeInfo?.education?.length > 0 && (
+      {showEducation && resumeInfo?.education?.length > 0 && (
         <EducationalPreview resumeInfo={resumeInfo} />
       )}
-      {resumeInfo?.experience?.length > 0 && (
+      {showExperience && resumeInfo?.experience?.length > 0 && (
         <ExperiencePreview resumeInfo={resumeInfo} />
       )}
-      {resumeInfo?.projects?.length > 0 && (
+      {showProjects && resumeInfo?.projects?.length > 0 && (
         <ProjectPreview resumeInfo={resumeInfo} />
       )}
       {resumeInfo?.skills?.length > 0 && (

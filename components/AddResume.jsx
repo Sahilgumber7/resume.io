@@ -8,15 +8,14 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { v4 as uuidv4 } from 'uuid'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
+import { createDefaultResumePayload } from '@/lib/resume-defaults'
 
 export default function AddResume() {
   const [openDialog, setOpenDialog] = useState(false)
@@ -32,34 +31,7 @@ export default function AddResume() {
     }
 
     setLoading(true)
-    const uuid = uuidv4()                                             
-
-
-
-
-
-
-
-
-
-
-    
-
-    const data = {
-      title: resumeTitle.trim(),
-      userClerkId: user.id,
-      fullName: user.fullName || '',
-      jobTitle: '',
-      email: user.primaryEmailAddress?.emailAddress || '',
-      phone: '',
-      address: '',
-      themeColor: '#000000',
-      summary: '',
-      education: [],
-      experience: [],
-      skills: [],
-      projects: [],
-    }
+    const data = createDefaultResumePayload(resumeTitle, user)
 
     try {
       const res = await fetch('/api/resumes', {
@@ -86,23 +58,21 @@ export default function AddResume() {
 
   return (
     <motion.div
-      whileHover={{ scale: 1.05 }}
+      whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       className="transition-transform"
     >
       {/* Add Resume Card */}
       <div
-        className="p-14 py-24 border border-dashed items-center flex justify-center
-        bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl h-[280px] 
-        hover:shadow-xl cursor-pointer transition-all duration-300"
+        className="surface-card flex h-[280px] items-center justify-center border-dashed p-14 py-24 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
         onClick={() => setOpenDialog(true)}
       >
-        <PlusSquare className="w-10 h-10 text-gray-600" />
+        <PlusSquare className="h-10 w-10 text-muted-foreground" />
       </div>
 
       {/* Dialog */}
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className="sm:max-w-md rounded-2xl shadow-xl">
+        <DialogContent className="sm:max-w-md rounded-3xl shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">
               Create New Resume

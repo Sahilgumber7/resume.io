@@ -79,6 +79,12 @@ const ResumeSchema = new mongoose.Schema(
         description: String,
       },
     ],
+
+    sectionVisibility: {
+      education: { type: Boolean, default: true },
+      experience: { type: Boolean, default: true },
+      projects: { type: Boolean, default: true },
+    },
   },
   {
     timestamps: true,

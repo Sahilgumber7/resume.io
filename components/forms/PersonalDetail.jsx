@@ -1,173 +1,104 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { ResumeInfoContext } from '@/components/ResumeInfoContext'
+import { useContext, useEffect, useState } from 'react'
 import { LoaderCircle } from 'lucide-react'
 import { useParams } from 'next/navigation'
-import React, { useContext, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
-export default function PersonalDetail({ enabledNext }) {
+import { ResumeInfoContext } from '@/components/ResumeInfoContext'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import FormCard from './FormCard'
+
+const EMPTY_FORM = {
+  fullName: '',
+  jobTitle: '',
+  email: '',
+  phone: '',
+  address: '',
+}
+
+export default function PersonalDetail() {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
-  const [formData, setFormData] = useState({
-    fullName: '',
-    jobTitle: '',
-    email: '',
-    phone: '',
-    address: ''
-  })
+  const { resumeId } = useParams()
+  const [formData, setFormData] = useState(EMPTY_FORM)
   const [loading, setLoading] = useState(false)
 
-  const { resumeId } = useParams()
-
-  // ✅ Fetch resume from backend if context is empty
   useEffect(() => {
-    const fetchResume = async () => {
-      if (!resumeId) return
-      try {
-        const res = await fetch(`/api/resumes/${resumeId}`)
-        if (!res.ok) throw new Error('Failed to fetch resume data')
-        const data = await res.json()
-
-        setResumeInfo(data)
-        setFormData({
-          fullName: data.fullName || '',
-          jobTitle: data.jobTitle || '',
-          email: data.email || '',
-          phone: data.phone || '',
-          address: data.address || ''
-        })
-      } catch (error) {
-        console.error('Failed to fetch resume info:', error)
-        toast.error('Could not load resume details')
-      }
-    }
-
-    if (!resumeInfo || Object.keys(resumeInfo).length === 0) {
-      fetchResume()
-    } else if (!formData.fullName) {
-      // ✅ Merge from context only once
-      setFormData({
-        fullName: resumeInfo.fullName || '',
-        jobTitle: resumeInfo.jobTitle || '',
-        email: resumeInfo.email || '',
-        phone: resumeInfo.phone || '',
-        address: resumeInfo.address || ''
-      })
-    }
-  }, [resumeId]) // removed resumeInfo from deps
-
-  useEffect(() => {
-    enabledNext(false) // disable next until save
-  }, [enabledNext])
+    if (!resumeInfo) return
+    setFormData({
+      fullName: resumeInfo.fullName || '',
+      jobTitle: resumeInfo.jobTitle || '',
+      email: resumeInfo.email || '',
+      phone: resumeInfo.phone || '',
+      address: resumeInfo.address || '',
+    })
+  }, [resumeInfo])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-
-    // Local state
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-
-    // Context state (flat structure)
-    setResumeInfo(prev => ({
-      ...prev,
-      [name]: value
-    }))
-
-    enabledNext(false)
+    setFormData((prev) => ({ ...prev, [name]: value }))
+    setResumeInfo((prev) => ({ ...(prev || {}), [name]: value }))
   }
 
   const onSave = async (e) => {
     e.preventDefault()
-
     if (!resumeId) {
-      toast.error('Resume ID is missing from the URL')
+      toast.error('Resume ID is missing')
       return
     }
 
     setLoading(true)
-
     try {
       const response = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData) // ✅ matches DB schema
+        body: JSON.stringify(formData),
       })
-
-      if (!response.ok) throw new Error('Failed to update')
-
-      enabledNext(true)
-      toast.success('Details updated successfully!')
+      if (!response.ok) throw new Error('Failed to save details')
+      toast.success('Personal details saved')
     } catch (error) {
       console.error('Failed to update resume:', error)
-      toast.error('Failed to save changes')
+      toast.error('Failed to save details')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10">
-      <h2 className="font-bold text-lg">Personal Detail</h2>
-      <p>Get started with the basic information</p>
-
+    <FormCard
+      title="Personal Details"
+      description="Add your basic contact and headline details."
+    >
       <form onSubmit={onSave}>
-        <div className="grid grid-cols-2 mt-5 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className="text-sm">Full Name</label>
-            <Input
-              name="fullName"
-              required
-              value={formData.fullName}
-              onChange={handleInputChange}
-            />
+            <Input name="fullName" required value={formData.fullName} onChange={handleInputChange} />
           </div>
-          <div className="col-span-2">
+          <div>
             <label className="text-sm">Job Title</label>
-            <Input
-              name="jobTitle"
-              required
-              value={formData.jobTitle}
-              onChange={handleInputChange}
-            />
+            <Input name="jobTitle" required value={formData.jobTitle} onChange={handleInputChange} />
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <label className="text-sm">Address</label>
-            <Input
-              name="address"
-              required
-              value={formData.address}
-              onChange={handleInputChange}
-            />
+            <Input name="address" value={formData.address} onChange={handleInputChange} />
           </div>
           <div>
             <label className="text-sm">Phone</label>
-            <Input
-              name="phone"
-              required
-              value={formData.phone}
-              onChange={handleInputChange}
-            />
+            <Input name="phone" value={formData.phone} onChange={handleInputChange} />
           </div>
           <div>
             <label className="text-sm">Email</label>
-            <Input
-              name="email"
-              required
-              value={formData.email}
-              onChange={handleInputChange}
-            />
+            <Input name="email" type="email" required value={formData.email} onChange={handleInputChange} />
           </div>
         </div>
-        <div className="mt-3 flex justify-end">
+        <div className="mt-4 flex justify-end">
           <Button type="submit" disabled={loading}>
-            {loading ? <LoaderCircle className="animate-spin" /> : 'Save'}
+            {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : 'Save Details'}
           </Button>
         </div>
       </form>
-    </div>
+    </FormCard>
   )
 }
