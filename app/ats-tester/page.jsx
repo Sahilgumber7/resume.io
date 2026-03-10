@@ -59,13 +59,15 @@ export default function ResumeATSTester() {
   const [jobDesc, setJobDesc] = useState("");
   const [resumeFiles, setResumeFiles] = useState([]);
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
-  const [parsedResults, setParsedResults] = useState([]);
-  const [aiData, setAiData] = useState({});
+  const [analysisResults, setAnalysisResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const selectedFile = resumeFiles[selectedFileIndex] || null;
-  const selectedResult = parsedResults.find((result) => result.filename === selectedFile?.name) || parsedResults[0] || null;
+  const selectedResult =
+    analysisResults.find((result) => result.filename === selectedFile?.name) ||
+    analysisResults[0] ||
+    null;
 
   const handleUpload = async () => {
     if (!resumeFiles.length || !jobDesc.trim()) {
@@ -74,41 +76,17 @@ export default function ResumeATSTester() {
     }
 
     setLoading(true);
-    setParsedResults([]);
-    setAiData({});
+    setAnalysisResults([]);
     setError("");
 
     try {
       const resultsArray = [];
-      const aiResults = {};
 
       for (const resume of resumeFiles) {
-        const parseFormData = new FormData();
-        parseFormData.append("resume", resume);
-
-        const parseRes = await fetch("/api/parser", {
-          method: "POST",
-          body: parseFormData,
-        });
-
-        if (!parseRes.ok) {
-          const parseJson = await parseRes.json().catch(() => ({}));
-          throw new Error(parseJson?.error || `Failed to parse resume: ${resume.name}`);
-        }
-
-        const parsedResume = await parseRes.json();
-
-        let resumeText = "";
-        if (parsedResume.sections) {
-          for (const section of Object.values(parsedResume.sections)) {
-            if (Array.isArray(section)) resumeText += `${section.join("\n")}\n`;
-            else if (typeof section === "string") resumeText += `${section}\n`;
-          }
-        }
-
         const atsFormData = new FormData();
         atsFormData.append("resume", resume);
         atsFormData.append("job_desc", jobDesc);
+        atsFormData.append("use_ai", "true");
 
         const atsRes = await fetch("/api/ats-test", {
           method: "POST",
@@ -117,35 +95,14 @@ export default function ResumeATSTester() {
 
         if (!atsRes.ok) {
           const atsJson = await atsRes.json().catch(() => ({}));
-          throw new Error(atsJson?.error || `ATS analysis failed for: ${resume.name}`);
+          throw new Error(atsJson?.error || atsJson?.detail || `ATS analysis failed for: ${resume.name}`);
         }
 
         const atsData = await atsRes.json();
-        resultsArray.push({ ...atsData, filename: resume.name });
-
-        const aiFormData = new FormData();
-        aiFormData.append("resume_text", resumeText);
-        aiFormData.append("job_description", jobDesc);
-        aiFormData.append("with_job_description", "true");
-        aiFormData.append("temperature", "0.3");
-        aiFormData.append("max_tokens", "500");
-
-        const aiResponse = await fetch("/api/analyze-resume", {
-          method: "POST",
-          body: aiFormData,
-        });
-
-        if (!aiResponse.ok) {
-          const aiJson = await aiResponse.json().catch(() => ({}));
-          throw new Error(aiJson?.error || `AI analysis failed for: ${resume.name}`);
-        }
-
-        const aiJson = await aiResponse.json();
-        aiResults[resume.name] = aiJson.ai_analysis || "No analysis text received";
+        resultsArray.push({ ...atsData, filename: atsData.filename || resume.name });
       }
 
-      setParsedResults(resultsArray);
-      setAiData(aiResults);
+      setAnalysisResults(resultsArray);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong while processing.";
       setError(message);
@@ -155,24 +112,26 @@ export default function ResumeATSTester() {
   };
 
   const handleDownloadCSV = () => {
-    if (!parsedResults.length) return;
+    if (!analysisResults.length) return;
 
-    const rows = parsedResults.map((res) => {
-      const aiAnalysis = aiData[res.filename] || "";
-      const sectionsDetected = res.sections_detected ? JSON.stringify(res.sections_detected) : "";
-      const matchedKeywords = res.keyword_match?.matched_keywords
-        ? res.keyword_match.matched_keywords.join(", ")
+    const rows = analysisResults.map((res) => {
+      const analysis = res.heuristic_analysis || {};
+      const sectionsDetected = analysis.sections_detected ? JSON.stringify(analysis.sections_detected) : "";
+      const matchedKeywords = Array.isArray(analysis.matched_keywords)
+        ? analysis.matched_keywords.join(", ")
         : "";
 
       return {
         Filename: res.filename,
-        ATS_Score: res.ats_score ?? "",
-        Semantic_Similarity: res.semantic_similarity ?? "",
-        Keyword_Match_Percent: res.keyword_match?.match_percent ?? "",
+        ATS_Score: analysis.ats_score ?? "",
+        Semantic_Similarity: analysis.semantic_similarity_percent ?? "",
+        Keyword_Match_Percent: analysis.keyword_match_percent ?? "",
+        Section_Coverage: analysis.section_coverage_percent ?? "",
         Matched_Keywords: matchedKeywords,
+        Missing_Keywords: Array.isArray(analysis.missing_keywords) ? analysis.missing_keywords.join(", ") : "",
         Sections_Detected: sectionsDetected,
-        AI_Analysis: typeof aiAnalysis === "string" ? aiAnalysis : JSON.stringify(aiAnalysis),
-        Suggestions: Array.isArray(res.improvements) ? res.improvements.join(" | ") : "",
+        AI_Analysis: typeof res.ai_analysis === "string" ? res.ai_analysis : JSON.stringify(res.ai_analysis || ""),
+        Suggestions: Array.isArray(analysis.improvements) ? analysis.improvements.join(" | ") : "",
       };
     });
 
@@ -242,8 +201,7 @@ export default function ResumeATSTester() {
                     }
                     setResumeFiles(Array.from(e.target.files));
                     setSelectedFileIndex(0);
-                    setParsedResults([]);
-                    setAiData({});
+                    setAnalysisResults([]);
                     setError("");
                   }}
                 />
@@ -276,7 +234,7 @@ export default function ResumeATSTester() {
                   {loading ? "Analyzing..." : "Analyze Resume(s)"}
                 </Button>
 
-                <Button size="lg" variant="outline" onClick={handleDownloadCSV} disabled={!parsedResults.length} className="flex-1">
+                <Button size="lg" variant="outline" onClick={handleDownloadCSV} disabled={!analysisResults.length} className="flex-1">
                   Download CSV
                 </Button>
               </div>
@@ -288,15 +246,17 @@ export default function ResumeATSTester() {
               )}
             </div>
 
-            {parsedResults.length > 0 && (
+            {analysisResults.length > 0 && (
               <div className="mt-8 space-y-5">
                 <div className="rounded-xl border p-4">
                   <h2 className="text-sm font-semibold">Score Snapshot</h2>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                    {parsedResults.map((result) => (
+                    {analysisResults.map((result) => (
                       <div key={result.filename} className="rounded-lg border bg-muted/20 p-3 text-sm">
                         <p className="truncate font-medium">{result.filename}</p>
-                        <p className="mt-1 text-muted-foreground">ATS Score: {result.ats_score ?? "N/A"}%</p>
+                        <p className="mt-1 text-muted-foreground">
+                          ATS Score: {result.heuristic_analysis?.ats_score ?? "N/A"}%
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -307,30 +267,34 @@ export default function ResumeATSTester() {
                     <h2 className="text-lg font-semibold">Detailed Result: {selectedResult.filename}</h2>
 
                     <div className="grid gap-2 text-sm sm:grid-cols-2">
-                      <p><span className="font-semibold">ATS Score:</span> {selectedResult.ats_score ?? "N/A"}%</p>
-                      <p><span className="font-semibold">Semantic Similarity:</span> {selectedResult.semantic_similarity ?? "N/A"}%</p>
-                      <p><span className="font-semibold">Keyword Match:</span> {selectedResult.keyword_match?.match_percent ?? 0}%</p>
-                      <p><span className="font-semibold">Matched Keywords:</span> {selectedResult.keyword_match?.matched_keywords?.join(", ") || "-"}</p>
+                      <p><span className="font-semibold">ATS Score:</span> {selectedResult.heuristic_analysis?.ats_score ?? "N/A"}%</p>
+                      <p><span className="font-semibold">Semantic Similarity:</span> {selectedResult.heuristic_analysis?.semantic_similarity_percent ?? "N/A"}%</p>
+                      <p><span className="font-semibold">Keyword Match:</span> {selectedResult.heuristic_analysis?.keyword_match_percent ?? 0}%</p>
+                      <p><span className="font-semibold">Section Coverage:</span> {selectedResult.heuristic_analysis?.section_coverage_percent ?? 0}%</p>
+                      <p><span className="font-semibold">Action Verbs:</span> {selectedResult.heuristic_analysis?.action_verb_percent ?? 0}%</p>
+                      <p><span className="font-semibold">Length Quality:</span> {selectedResult.heuristic_analysis?.length_score_percent ?? 0}%</p>
+                      <p className="sm:col-span-2"><span className="font-semibold">Matched Keywords:</span> {selectedResult.heuristic_analysis?.matched_keywords?.join(", ") || "-"}</p>
+                      <p className="sm:col-span-2"><span className="font-semibold">Missing Keywords:</span> {selectedResult.heuristic_analysis?.missing_keywords?.join(", ") || "-"}</p>
                     </div>
 
-                    {Array.isArray(selectedResult.improvements) && selectedResult.improvements.length > 0 && (
+                    {Array.isArray(selectedResult.heuristic_analysis?.improvements) && selectedResult.heuristic_analysis.improvements.length > 0 && (
                       <div>
                         <h3 className="text-sm font-semibold">Suggestions</h3>
                         <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                          {selectedResult.improvements.map((item, idx) => (
+                          {selectedResult.heuristic_analysis.improvements.map((item, idx) => (
                             <li key={idx}>{item}</li>
                           ))}
                         </ul>
                       </div>
                     )}
 
-                    {aiData[selectedResult.filename] && (
+                    {selectedResult.ai_analysis && (
                       <div className="rounded-lg border bg-primary/5 p-3">
                         <h3 className="text-sm font-semibold">AI Analysis</h3>
                         <pre className="mt-2 whitespace-pre-wrap text-xs text-muted-foreground">
-                          {typeof aiData[selectedResult.filename] === "string"
-                            ? aiData[selectedResult.filename]
-                            : JSON.stringify(aiData[selectedResult.filename], null, 2)}
+                          {typeof selectedResult.ai_analysis === "string"
+                            ? selectedResult.ai_analysis
+                            : JSON.stringify(selectedResult.ai_analysis, null, 2)}
                         </pre>
                       </div>
                     )}

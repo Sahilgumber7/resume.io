@@ -57,3 +57,67 @@ Resume:
         "You are an expert ATS resume analyzer. Respond in a structured format.", 
         temperature=temperature
     )
+
+
+def analyze_linkedin_profile(
+    profile_text: str,
+    job_description: str = "",
+    profile_url: str = "",
+    temperature: float = 0.35
+):
+    prompt = f"""
+You are an expert LinkedIn profile strategist.
+Analyze the following LinkedIn profile content and provide:
+1. Profile Strength Score (0-100)
+2. Top strengths
+3. Gaps in headline/about/experience/skills
+4. Keyword opportunities for recruiter search
+5. Concrete rewrite suggestions for headline and about section
+
+LinkedIn URL (if provided): {profile_url}
+Target Job Description (optional):
+{job_description}
+
+LinkedIn Profile Content:
+{profile_text}
+"""
+    return generate_ai_response(
+        prompt,
+        "You are a LinkedIn optimization expert. Keep output structured and actionable.",
+        temperature=temperature,
+        max_tokens=1200,
+    )
+
+
+def generate_cover_letter(
+    resume_text: str,
+    job_description: str,
+    company_name: str = "",
+    hiring_manager: str = "",
+    tone: str = "professional",
+    temperature: float = 0.45,
+):
+    prompt = f"""
+Write a tailored one-page cover letter using the information below.
+
+Requirements:
+- Tone: {tone}
+- Mention relevant accomplishments from resume
+- Align with job requirements and keywords
+- Keep it concise and specific
+- Use this salutation if available: {hiring_manager}
+- Company name: {company_name}
+- Return plain text only
+
+Job Description:
+{job_description}
+
+Resume:
+{resume_text}
+"""
+    return generate_ai_response(
+        prompt,
+        "You are an expert career coach and technical recruiter who writes strong cover letters.",
+        temperature=temperature,
+        max_tokens=1000,
+    )

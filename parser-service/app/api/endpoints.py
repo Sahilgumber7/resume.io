@@ -93,3 +93,67 @@ async def rephrase(text: str = Form(...)):
     prompt = f"Rephrase the following resume bullet point to be more impact-oriented and ATS-friendly: {text}"
     result = ai_service.generate_ai_response(prompt, "You are a professional resume writer.")
     return {"rephrased_text": result}
+
+
+@router.post("/linkedin-analyze")
+async def linkedin_analyze(
+    profile_text: str = Form(""),
+    job_desc: str = Form(""),
+    profile_url: str = Form(""),
+    profile_file: UploadFile = File(None),
+    temperature: float = Form(0.35),
+):
+    resolved_profile_text = (profile_text or "").strip()
+
+    if profile_file is not None:
+        tmp_path, _ = await _save_upload_to_tempfile(profile_file)
+        try:
+            parsed_data = parser_service.parse_file(tmp_path)
+            if "error" in parsed_data:
+                raise HTTPException(status_code=500, detail=parsed_data["error"])
+            file_text = (parsed_data.get("raw_text") or "").strip()
+            if file_text:
+                resolved_profile_text = (
+                    f"{resolved_profile_text}\n\n{file_text}".strip()
+                    if resolved_profile_text
+                    else file_text
+                )
+        finally:
+            _remove_file_if_exists(tmp_path)
+
+    if not resolved_profile_text:
+        raise HTTPException(status_code=422, detail="Provide profile_text or upload profile_file (PDF/DOCX)")
+
+    keyword_analysis = ats_service.calculate_ats_score(resolved_profile_text, job_desc) if job_desc else None
+    ai_analysis = ai_service.analyze_linkedin_profile(
+        profile_text=resolved_profile_text,
+        job_description=job_desc,
+        profile_url=profile_url,
+        temperature=temperature,
+    )
+    return {
+        "profile_url": profile_url,
+        "content_char_count": len(resolved_profile_text),
+        "keyword_alignment": keyword_analysis,
+        "ai_analysis": ai_analysis,
+    }
+
+
+@router.post("/cover-letter")
+async def cover_letter(
+    resume_text: str = Form(...),
+    job_desc: str = Form(...),
+    company_name: str = Form(""),
+    hiring_manager: str = Form(""),
+    tone: str = Form("professional"),
+    temperature: float = Form(0.45),
+):
+    letter = ai_service.generate_cover_letter(
+        resume_text=resume_text,
+        job_description=job_desc,
+        company_name=company_name,
+        hiring_manager=hiring_manager,
+        tone=tone,
+        temperature=temperature,
+    )
+    return {"cover_letter": letter}

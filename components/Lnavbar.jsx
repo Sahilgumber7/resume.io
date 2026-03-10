@@ -79,9 +79,19 @@ export default function Lnavbar() {
             Parser
           </Button>
         </Link>
-        <Link href="/ats-tester">
+          <Link href="/ats-tester">
           <Button variant="ghost" size="sm">
             ATS Score Matcher
+          </Button>
+        </Link>
+        <Link href="/linkedin-analyzer">
+          <Button variant="ghost" size="sm">
+            LinkedIn Analyzer
+          </Button>
+        </Link>
+        <Link href="/cover-letter">
+          <Button variant="ghost" size="sm">
+            Cover Letter
           </Button>
         </Link>
           
@@ -122,6 +132,18 @@ export default function Lnavbar() {
           <Button variant="ghost" size="sm" onClick={handleBuilderClick}>
             Builder
           </Button>
+          <Link href="/parser">
+            <Button variant="ghost" size="sm">Parser</Button>
+          </Link>
+          <Link href="/ats-tester">
+            <Button variant="ghost" size="sm">ATS Score Matcher</Button>
+          </Link>
+          <Link href="/linkedin-analyzer">
+            <Button variant="ghost" size="sm">LinkedIn Analyzer</Button>
+          </Link>
+          <Link href="/cover-letter">
+            <Button variant="ghost" size="sm">Cover Letter</Button>
+          </Link>
           {isSignedIn && (
             <Link href="/dashboard">
               <Button variant="ghost" size="sm">Dashboard</Button>

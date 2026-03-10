@@ -16,14 +16,10 @@ export async function POST(req: Request) {
       body: formData,
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("FastAPI Error Response:", errText);
-      return NextResponse.json({ error: "Backend error occurred" }, { status: 500 });
-    }
-
-    const data = await response.json();
-    return NextResponse.json(data);
+    const contentType = response.headers.get("content-type") || "";
+    const isJson = contentType.includes("application/json");
+    const data = isJson ? await response.json() : { detail: await response.text() };
+    return NextResponse.json(data, { status: response.status });
   } catch (error: unknown) {
     console.error("ATS Tester API Error:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";

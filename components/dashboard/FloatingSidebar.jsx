@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { FileSearch, LayoutDashboard, ScanSearch, UserCircle2 } from 'lucide-react'
+import { FileSearch, LayoutDashboard, ScanSearch, UserCircle2, Linkedin, FilePenLine } from 'lucide-react'
 
 const navItems = [
   {
@@ -24,6 +24,16 @@ const navItems = [
     href: '/ats-tester',
     label: 'ATS Matcher',
     icon: ScanSearch,
+  },
+  {
+    href: '/linkedin-analyzer',
+    label: 'LinkedIn',
+    icon: Linkedin,
+  },
+  {
+    href: '/cover-letter',
+    label: 'Cover Letter',
+    icon: FilePenLine,
   },
 ]
 

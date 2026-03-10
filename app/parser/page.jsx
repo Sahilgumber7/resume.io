@@ -147,7 +147,7 @@ export default function ParserPage() {
         let current = [];
 
         expArr.forEach((line) => {
-          if (line.startsWith("•") && current.length) {
+          if ((line.startsWith("•") || line.startsWith("-")) && current.length) {
             chunks.push([...current]);
             current = [];
           }
@@ -161,9 +161,9 @@ export default function ParserPage() {
           companyName: chunk.find((l) => l.includes(".com") || l.includes("PYOP")) || "",
           city: chunk.find((l) => ["Delhi", "Bangalore", "Mumbai"].includes(l)) || "",
           state: "",
-          startDate: chunk.find((l) => l.includes("–"))?.split("–")[0]?.trim() || "",
-          endDate: chunk.find((l) => l.includes("–"))?.split("–")[1]?.trim() || "",
-          worksummary: chunk.filter((l) => l.startsWith("•")).join(" "),
+          startDate: chunk.find((l) => l.includes("–") || l.includes("-"))?.split(/–|-/)[0]?.trim() || "",
+          endDate: chunk.find((l) => l.includes("–") || l.includes("-"))?.split(/–|-/)[1]?.trim() || "",
+          worksummary: chunk.filter((l) => l.startsWith("•") || l.startsWith("-")).join(" "),
         }));
       }
 
