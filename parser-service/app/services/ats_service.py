@@ -51,6 +51,47 @@ def _get_hf_client():
         _hf_client = InferenceClient(token=settings.HF_API_TOKEN)
     return _hf_client
 
+def _mean_pool_to_vector(value) -> np.ndarray:
+    """
+    Normalize HF feature extraction output into a single 1D sentence vector.
+    Handles token-level matrices by mean-pooling across token axis.
+    """
+    arr = np.asarray(value, dtype=np.float32)
+    if arr.size == 0:
+        return np.zeros((1,), dtype=np.float32)
+    while arr.ndim > 1:
+        arr = arr.mean(axis=0)
+    return arr.astype(np.float32, copy=False)
+
+def _normalize_hf_embeddings(raw_vectors, sentence_count: int) -> np.ndarray:
+    """
+    Convert varying HF output shapes into a stable [num_sentences, embedding_dim] matrix.
+    """
+    # Fast path: already numeric 2D with one row per sentence.
+    try:
+        arr = np.asarray(raw_vectors, dtype=np.float32)
+        if arr.ndim == 2 and arr.shape[0] == sentence_count:
+            return arr
+        if arr.ndim == 1 and sentence_count == 1:
+            return arr.reshape(1, -1)
+    except Exception:
+        pass
+
+    # Common path: list where each item may be 1D (sentence embedding) or 2D (token embeddings).
+    if isinstance(raw_vectors, list):
+        if sentence_count == 1:
+            return _mean_pool_to_vector(raw_vectors).reshape(1, -1)
+        if len(raw_vectors) == sentence_count:
+            pooled = [_mean_pool_to_vector(item) for item in raw_vectors]
+            dims = [vec.shape[0] for vec in pooled]
+            if len(set(dims)) != 1:
+                raise RuntimeError(
+                    f"Inconsistent embedding dimensions from HF: {dims[:10]}"
+                )
+            return np.vstack(pooled).astype(np.float32)
+
+    raise RuntimeError("Unexpected HF embedding response shape.")
+
 def _encode_sentences(sentences):
     if not sentences:
         return np.zeros((0, 1), dtype=np.float32)
@@ -58,11 +99,23 @@ def _encode_sentences(sentences):
     backend = (settings.EMBEDDING_BACKEND or "hf").lower()
     if backend == "hf":
         client = _get_hf_client()
-        vectors = client.feature_extraction(sentences, model=settings.EMBEDDING_MODEL)
-        arr = np.asarray(vectors, dtype=np.float32)
-        if arr.ndim == 1:
-            arr = arr.reshape(1, -1)
-        return arr
+        # HF inference may return sentence-level or token-level nested outputs.
+        # Normalize all variants into consistent sentence embeddings.
+        try:
+            vectors = client.feature_extraction(sentences, model=settings.EMBEDDING_MODEL)
+            return _normalize_hf_embeddings(vectors, len(sentences))
+        except Exception:
+            # Fallback: request embeddings per sentence and normalize each response.
+            pooled = []
+            for sentence in sentences:
+                vec = client.feature_extraction(sentence, model=settings.EMBEDDING_MODEL)
+                pooled.append(_mean_pool_to_vector(vec))
+            dims = [vec.shape[0] for vec in pooled]
+            if len(set(dims)) != 1:
+                raise RuntimeError(
+                    f"Inconsistent embedding dimensions across sentences: {dims[:10]}"
+                )
+            return np.vstack(pooled).astype(np.float32)
 
     model = _get_local_model()
     vectors = model.encode(sentences, convert_to_numpy=True, normalize_embeddings=False)

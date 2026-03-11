@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { FileText } from "lucide-react";
+import { ChevronDown, ChevronUp, FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import Lnavbar from "@/components/Lnavbar";
 import FloatingSidebar from "@/components/dashboard/FloatingSidebar";
 
@@ -55,6 +57,85 @@ function ResumeFilePreview({ file }) {
   );
 }
 
+const cleanInlineMarkdown = (line) => line.replace(/\*\*(.*?)\*\*/g, "$1").trim();
+
+const parseAnalysisSections = (analysisText) => {
+  if (!analysisText || typeof analysisText !== "string") return [];
+
+  const lines = analysisText
+    .split("\n")
+    .map((line) => line.replace(/\r/g, ""))
+    .map((line) => line.trim());
+
+  const sections = [];
+  let current = null;
+
+  const pushCurrent = () => {
+    if (current && current.lines.length) sections.push(current);
+  };
+
+  for (const rawLine of lines) {
+    if (!rawLine) continue;
+
+    const markdownHeading = rawLine.match(/^\*\*(.+?)\*\*:?\s*$/);
+    const numberedHeading = rawLine.match(/^\d+\.\s+\*\*(.+?)\*\*:?\s*$/);
+    const heading = markdownHeading?.[1] || numberedHeading?.[1];
+
+    if (heading) {
+      pushCurrent();
+      current = { title: cleanInlineMarkdown(heading), lines: [] };
+      continue;
+    }
+
+    if (!current) current = { title: "Overview", lines: [] };
+    current.lines.push(cleanInlineMarkdown(rawLine));
+  }
+
+  pushCurrent();
+  return sections;
+};
+
+const renderSectionLine = (line, idx) => {
+  if (line.startsWith("- ")) {
+    return (
+      <p key={`bullet-${idx}`} className="text-sm leading-relaxed text-foreground/90">
+        {"\u2022"} {line.slice(2)}
+      </p>
+    );
+  }
+
+  const numbered = line.match(/^(\d+)\.\s+(.*)$/);
+  if (numbered) {
+    return (
+      <p key={`num-${idx}`} className="text-sm leading-relaxed text-foreground/90">
+        <span className="font-semibold">{numbered[1]}.</span> {numbered[2]}
+      </p>
+    );
+  }
+
+  return (
+    <p key={`text-${idx}`} className="text-sm leading-relaxed text-muted-foreground">
+      {line}
+    </p>
+  );
+};
+
+const clampPercent = (value) => {
+  const n = Number(value);
+  if (Number.isNaN(n)) return 0;
+  return Math.max(0, Math.min(100, Math.round(n)));
+};
+
+const ScoreCard = ({ label, value, unavailable = false }) => (
+  <article className="surface-card min-w-[210px] flex-1 p-4">
+    <p className="text-xs text-muted-foreground">{label}</p>
+    <p className="mt-1 text-2xl font-semibold">{unavailable ? "N/A" : `${value}%`}</p>
+    <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+      <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${value}%` }} />
+    </div>
+  </article>
+);
+
 export default function ResumeATSTester() {
   const [jobDesc, setJobDesc] = useState("");
   const [resumeFiles, setResumeFiles] = useState([]);
@@ -62,12 +143,24 @@ export default function ResumeATSTester() {
   const [analysisResults, setAnalysisResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isDetailedOpen, setIsDetailedOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const selectedFile = resumeFiles[selectedFileIndex] || null;
   const selectedResult =
     analysisResults.find((result) => result.filename === selectedFile?.name) ||
     analysisResults[0] ||
     null;
+
+  const selectedAnalysis = selectedResult?.heuristic_analysis || {};
+  const hasHeuristicError = Boolean(selectedAnalysis.error);
+  const detailedScoreCards = [
+    { label: "ATS Score", value: clampPercent(selectedAnalysis.ats_score) },
+    { label: "Semantic Similarity", value: clampPercent(selectedAnalysis.semantic_similarity_percent) },
+    { label: "Keyword Match", value: clampPercent(selectedAnalysis.keyword_match_percent) },
+    { label: "Section Coverage", value: clampPercent(selectedAnalysis.section_coverage_percent) },
+    { label: "Action Verbs", value: clampPercent(selectedAnalysis.action_verb_percent) },
+  ];
 
   const handleUpload = async () => {
     if (!resumeFiles.length || !jobDesc.trim()) {
@@ -103,6 +196,8 @@ export default function ResumeATSTester() {
       }
 
       setAnalysisResults(resultsArray);
+      setIsDetailedOpen(false);
+      setIsPreviewOpen(false);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong while processing.";
       setError(message);
@@ -152,153 +247,222 @@ export default function ResumeATSTester() {
     URL.revokeObjectURL(url);
   };
 
+  const resetAnalysis = () => {
+    setAnalysisResults([]);
+    setError("");
+    setIsDetailedOpen(false);
+    setIsPreviewOpen(false);
+  };
+
   return (
     <>
       <Lnavbar />
       <FloatingSidebar />
-      <section className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-muted/40 px-4 py-8 md:pl-24 sm:px-6 lg:px-10">
+      <section className="min-h-screen bg-background px-4 py-8 md:pl-24 sm:px-6 lg:px-10">
         <motion.div
-          className="mx-auto grid w-full max-w-7xl gap-6 lg:grid-cols-2"
+          className="mx-auto w-full max-w-7xl"
           initial="hidden"
           animate="show"
           variants={fadeUp}
         >
-          <ResumeFilePreview file={selectedFile} />
-
-          <div className="rounded-2xl border bg-card p-6 shadow-sm sm:p-8">
+          <div className="surface-panel p-6 sm:p-8">
             <h1 className="text-3xl font-bold tracking-tight">ATS + AI Resume Tester</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Compare resumes against a job description and review ATS fit with AI feedback.
             </p>
 
-            <div className="mt-6 space-y-4">
-              <div>
-                <label className="mb-2 block text-sm font-semibold">Job Description</label>
-                <textarea
-                  placeholder="Paste the target job description here..."
-                  className="h-36 w-full resize-none rounded-xl border bg-muted/20 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-                  value={jobDesc}
-                  onChange={(e) => setJobDesc(e.target.value)}
-                />
-              </div>
+            {!analysisResults.length ? (
+              <div className="mt-6 grid gap-6 lg:grid-cols-2">
+                <ResumeFilePreview file={selectedFile} />
 
-              <label
-                htmlFor="resume-upload"
-                className="flex h-36 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed bg-muted/30 text-center transition hover:bg-muted/50"
-              >
-                <p className="font-medium">Upload resume file(s)</p>
-                <p className="mt-1 text-sm text-muted-foreground">Multiple PDF or DOCX files, up to 5MB each</p>
-                <input
-                  id="resume-upload"
-                  type="file"
-                  multiple
-                  accept=".pdf,.docx"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (!e.target.files) {
-                      setResumeFiles([]);
-                      return;
-                    }
-                    setResumeFiles(Array.from(e.target.files));
-                    setSelectedFileIndex(0);
-                    setAnalysisResults([]);
-                    setError("");
-                  }}
-                />
-              </label>
-
-              {resumeFiles.length > 0 && (
-                <div className="rounded-xl border p-3">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Uploaded Files
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {resumeFiles.map((resume, index) => (
-                      <button
-                        key={`${resume.name}-${index}`}
-                        type="button"
-                        onClick={() => setSelectedFileIndex(index)}
-                        className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                          selectedFileIndex === index ? "border-primary bg-primary/10" : "hover:bg-muted"
-                        }`}
-                      >
-                        {resume.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Button size="lg" onClick={handleUpload} disabled={loading || !resumeFiles.length || !jobDesc.trim()} className="flex-1">
-                  {loading ? "Analyzing..." : "Analyze Resume(s)"}
-                </Button>
-
-                <Button size="lg" variant="outline" onClick={handleDownloadCSV} disabled={!analysisResults.length} className="flex-1">
-                  Download CSV
-                </Button>
-              </div>
-
-              {error && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                  {error}
-                </div>
-              )}
-            </div>
-
-            {analysisResults.length > 0 && (
-              <div className="mt-8 space-y-5">
-                <div className="rounded-xl border p-4">
-                  <h2 className="text-sm font-semibold">Score Snapshot</h2>
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                    {analysisResults.map((result) => (
-                      <div key={result.filename} className="rounded-lg border bg-muted/20 p-3 text-sm">
-                        <p className="truncate font-medium">{result.filename}</p>
-                        <p className="mt-1 text-muted-foreground">
-                          ATS Score: {result.heuristic_analysis?.ats_score ?? "N/A"}%
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {selectedResult && (
-                  <div className="space-y-4 rounded-xl border p-4">
-                    <h2 className="text-lg font-semibold">Detailed Result: {selectedResult.filename}</h2>
-
-                    <div className="grid gap-2 text-sm sm:grid-cols-2">
-                      <p><span className="font-semibold">ATS Score:</span> {selectedResult.heuristic_analysis?.ats_score ?? "N/A"}%</p>
-                      <p><span className="font-semibold">Semantic Similarity:</span> {selectedResult.heuristic_analysis?.semantic_similarity_percent ?? "N/A"}%</p>
-                      <p><span className="font-semibold">Keyword Match:</span> {selectedResult.heuristic_analysis?.keyword_match_percent ?? 0}%</p>
-                      <p><span className="font-semibold">Section Coverage:</span> {selectedResult.heuristic_analysis?.section_coverage_percent ?? 0}%</p>
-                      <p><span className="font-semibold">Action Verbs:</span> {selectedResult.heuristic_analysis?.action_verb_percent ?? 0}%</p>
-                      <p><span className="font-semibold">Length Quality:</span> {selectedResult.heuristic_analysis?.length_score_percent ?? 0}%</p>
-                      <p className="sm:col-span-2"><span className="font-semibold">Matched Keywords:</span> {selectedResult.heuristic_analysis?.matched_keywords?.join(", ") || "-"}</p>
-                      <p className="sm:col-span-2"><span className="font-semibold">Missing Keywords:</span> {selectedResult.heuristic_analysis?.missing_keywords?.join(", ") || "-"}</p>
+                <div className="surface-card p-5">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold">Job Description</label>
+                      <Textarea
+                        placeholder="Paste the target job description here..."
+                        className="min-h-36"
+                        value={jobDesc}
+                        onChange={(e) => setJobDesc(e.target.value)}
+                      />
                     </div>
 
-                    {Array.isArray(selectedResult.heuristic_analysis?.improvements) && selectedResult.heuristic_analysis.improvements.length > 0 && (
-                      <div>
-                        <h3 className="text-sm font-semibold">Suggestions</h3>
-                        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                          {selectedResult.heuristic_analysis.improvements.map((item, idx) => (
-                            <li key={idx}>{item}</li>
+                    <label
+                      htmlFor="resume-upload"
+                      className="flex h-36 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed bg-muted/30 text-center transition hover:bg-muted/50"
+                    >
+                      <p className="font-medium">Upload resume file(s)</p>
+                      <p className="mt-1 text-sm text-muted-foreground">Multiple PDF or DOCX files, up to 5MB each</p>
+                      <Input
+                        id="resume-upload"
+                        type="file"
+                        multiple
+                        accept=".pdf,.docx"
+                        className="hidden"
+                        onChange={(e) => {
+                          if (!e.target.files) {
+                            setResumeFiles([]);
+                            return;
+                          }
+                          setResumeFiles(Array.from(e.target.files));
+                          setSelectedFileIndex(0);
+                          setAnalysisResults([]);
+                          setError("");
+                        }}
+                      />
+                    </label>
+
+                    {resumeFiles.length > 0 && (
+                      <div className="rounded-xl border p-3">
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Uploaded Files
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {resumeFiles.map((resume, index) => (
+                            <button
+                              key={`${resume.name}-${index}`}
+                              type="button"
+                              onClick={() => setSelectedFileIndex(index)}
+                              className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                                selectedFileIndex === index ? "border-primary bg-primary/10" : "hover:bg-muted"
+                              }`}
+                            >
+                              {resume.name}
+                            </button>
                           ))}
-                        </ul>
+                        </div>
                       </div>
                     )}
 
-                    {selectedResult.ai_analysis && (
-                      <div className="rounded-lg border bg-primary/5 p-3">
-                        <h3 className="text-sm font-semibold">AI Analysis</h3>
-                        <pre className="mt-2 whitespace-pre-wrap text-xs text-muted-foreground">
-                          {typeof selectedResult.ai_analysis === "string"
-                            ? selectedResult.ai_analysis
-                            : JSON.stringify(selectedResult.ai_analysis, null, 2)}
-                        </pre>
+                    <Button size="lg" onClick={handleUpload} disabled={loading || !resumeFiles.length || !jobDesc.trim()} className="w-full">
+                      {loading ? "Analyzing..." : "Analyze Resume(s)"}
+                    </Button>
+
+                    {error && (
+                      <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                        {error}
                       </div>
                     )}
                   </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-6 space-y-5">
+                <section className="surface-card p-5">
+                  <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+                    <div className="space-y-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsPreviewOpen((prev) => !prev)}
+                        className="flex w-full items-center justify-between rounded-lg border bg-muted/20 px-4 py-3 text-left transition hover:bg-muted/35"
+                      >
+                        <div>
+                          <p className="text-sm font-semibold">Resume Preview</p>
+                          <p className="text-xs text-muted-foreground">{selectedFile?.name || "No file selected"}</p>
+                        </div>
+                        {isPreviewOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </button>
+                      {isPreviewOpen && <ResumeFilePreview file={selectedFile} />}
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm font-semibold">Detailed Result</p>
+                        <p className="mt-1 text-sm text-muted-foreground">{selectedResult?.filename || "No file selected"}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Job description length: {jobDesc.length} characters</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {analysisResults.map((result, index) => (
+                          <button
+                            key={`${result.filename}-${index}`}
+                            type="button"
+                            onClick={() => setSelectedFileIndex(index)}
+                            className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                              selectedResult?.filename === result.filename ? "border-primary bg-primary/10" : "hover:bg-muted"
+                            }`}
+                          >
+                            {result.filename}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <Button variant="outline" onClick={resetAnalysis} className="flex-1">Start New Analysis</Button>
+                        <Button variant="outline" onClick={handleDownloadCSV} className="flex-1">Download CSV</Button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="flex flex-wrap gap-3">
+                  {detailedScoreCards.map((score) => (
+                    <ScoreCard key={score.label} label={score.label} value={score.value} unavailable={hasHeuristicError} />
+                  ))}
+                </section>
+
+                {selectedResult && (
+                  <section className="space-y-3 rounded-xl border p-4">
+                    {hasHeuristicError && (
+                      <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+                        ATS heuristic scoring is unavailable for this run: {selectedAnalysis.error}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsDetailedOpen((prev) => !prev)}
+                      className="flex w-full items-center justify-between rounded-lg border bg-muted/20 px-4 py-3 text-left transition hover:bg-muted/35"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold">Detailed ATS + AI Response</p>
+                        <p className="text-xs text-muted-foreground">{selectedResult.filename}</p>
+                      </div>
+                      {isDetailedOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </button>
+
+                    {isDetailedOpen && (
+                      <div className="space-y-4">
+                        <div className="grid gap-2 text-sm sm:grid-cols-2">
+                          <p><span className="font-semibold">ATS Score:</span> {selectedAnalysis.ats_score ?? "N/A"}%</p>
+                          <p><span className="font-semibold">Semantic Similarity:</span> {selectedAnalysis.semantic_similarity_percent ?? "N/A"}%</p>
+                          <p><span className="font-semibold">Keyword Match:</span> {selectedAnalysis.keyword_match_percent ?? 0}%</p>
+                          <p><span className="font-semibold">Section Coverage:</span> {selectedAnalysis.section_coverage_percent ?? 0}%</p>
+                          <p><span className="font-semibold">Action Verbs:</span> {selectedAnalysis.action_verb_percent ?? 0}%</p>
+                          <p><span className="font-semibold">Length Quality:</span> {selectedAnalysis.length_score_percent ?? 0}%</p>
+                          <p className="sm:col-span-2"><span className="font-semibold">Matched Keywords:</span> {selectedAnalysis.matched_keywords?.join(", ") || "-"}</p>
+                          <p className="sm:col-span-2"><span className="font-semibold">Missing Keywords:</span> {selectedAnalysis.missing_keywords?.join(", ") || "-"}</p>
+                        </div>
+
+                        {Array.isArray(selectedAnalysis.improvements) && selectedAnalysis.improvements.length > 0 && (
+                          <div>
+                            <h3 className="text-sm font-semibold">Suggestions</h3>
+                            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                              {selectedAnalysis.improvements.map((item, idx) => (
+                                <li key={idx}>{item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {selectedResult.ai_analysis && (
+                          <div className="rounded-2xl border bg-primary/5 p-4">
+                            <h3 className="text-sm font-semibold">AI Analysis</h3>
+                            <div className="mt-3 grid gap-3 md:grid-cols-2">
+                              {parseAnalysisSections(
+                                typeof selectedResult.ai_analysis === "string"
+                                  ? selectedResult.ai_analysis
+                                  : JSON.stringify(selectedResult.ai_analysis, null, 2)
+                              ).map((section, index) => (
+                                <article key={`${section.title}-${index}`} className="rounded-xl border bg-background p-4">
+                                  <h4 className="text-sm font-semibold">{section.title}</h4>
+                                  <div className="mt-2 space-y-2">
+                                    {section.lines.map((line, lineIndex) => renderSectionLine(line, lineIndex))}
+                                  </div>
+                                </article>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </section>
                 )}
               </div>
             )}

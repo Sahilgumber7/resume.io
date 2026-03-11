@@ -9,7 +9,8 @@ class Settings(BaseSettings):
     HF_API_TOKEN: str = ""
     
     class Config:
-        env_file = ".env"
+        # Load local overrides for development, then default env file.
+        env_file = (".env.local", ".env")
         env_file_encoding = "utf-8"
 
 @lru_cache()
