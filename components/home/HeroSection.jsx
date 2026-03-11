@@ -15,10 +15,6 @@ export default function HeroSection() {
 
   return (
     <section className="relative isolate overflow-hidden py-24 sm:py-36">
-      <div
-        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-muted via-background to-background"
-        aria-hidden="true"
-      />
       <motion.div
         className="mx-auto max-w-6xl px-6 text-center lg:px-8"
         initial="hidden"

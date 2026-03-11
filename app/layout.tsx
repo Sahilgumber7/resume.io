@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Resume.io',
-  description: 'Build job winning resume',
+  title: 'Resume.xyz',
+  description: 'Build job-winning resumes with Resume.xyz',
 }
 
 export default function RootLayout({

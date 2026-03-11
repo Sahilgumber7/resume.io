@@ -34,7 +34,7 @@ function ResumePreviewPanel({ file }) {
       <p className="text-sm font-medium text-muted-foreground">Resume Preview</p>
       <p className="mt-1 truncate text-sm font-semibold">{file?.name || "No file selected"}</p>
 
-      <div className="mt-4 flex h-[70vh] min-h-[400px] items-center justify-center overflow-hidden rounded-xl border bg-muted/30">
+      <div className="mt-4 flex h-[55vh] min-h-[260px] items-center justify-center overflow-hidden rounded-xl border bg-muted/30 sm:min-h-[320px] lg:h-[70vh] lg:min-h-[400px]">
         {!file && (
           <div className="px-4 text-center text-sm text-muted-foreground">
             Upload a PDF or DOCX file to preview it here.
@@ -221,16 +221,18 @@ export default function ParserPage() {
     <>
       <Lnavbar />
       <FloatingSidebar />
-      <section className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-muted/40 px-4 py-8 md:pl-24 sm:px-6 lg:px-10">
+      <section className="min-h-screen bg-background px-4 py-6 md:pl-24 sm:px-6 sm:py-8 lg:px-10">
         <motion.div
           className="mx-auto grid w-full max-w-7xl gap-6 lg:grid-cols-2"
           initial="hidden"
           animate="show"
           variants={fadeUp}
         >
-          <ResumePreviewPanel file={file} />
+          <div className="order-2 lg:order-1">
+            <ResumePreviewPanel file={file} />
+          </div>
 
-          <div className="rounded-2xl border bg-card p-6 shadow-sm sm:p-8">
+          <div className="order-1 rounded-2xl border bg-card p-5 shadow-sm sm:p-8 lg:order-2">
             <h1 className="text-3xl font-bold tracking-tight">Resume Parser</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Upload a resume, extract structured data, then open it in the builder.

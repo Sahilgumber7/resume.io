@@ -91,7 +91,7 @@ const extractProfileStrengthScore = (analysisText) => {
 };
 
 const ScoreCard = ({ label, value }) => (
-  <article className="surface-card min-w-[210px] flex-1 p-4">
+  <article className="surface-card w-full p-4">
     <p className="text-xs text-muted-foreground">{label}</p>
     <p className="mt-1 text-2xl font-semibold">{value}%</p>
     <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -161,7 +161,7 @@ export default function LinkedInAnalyzerPage() {
       <Lnavbar />
       <FloatingSidebar />
       <main className="min-h-screen bg-background text-foreground">
-      <section className="px-4 py-8 md:pl-24 sm:px-6 lg:px-10">
+      <section className="px-4 py-6 md:pl-24 sm:px-6 sm:py-8 lg:px-10">
         <motion.div
           className="mx-auto w-full max-w-7xl"
           initial="hidden"
@@ -250,7 +250,7 @@ export default function LinkedInAnalyzerPage() {
                   </div>
                 </section>
 
-                <section className="flex flex-wrap gap-3">
+                <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                   {scoreCards.map((score) => (
                     <ScoreCard key={score.label} label={score.label} value={score.value} />
                   ))}

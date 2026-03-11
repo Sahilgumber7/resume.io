@@ -34,7 +34,7 @@ function ResumeFilePreview({ file }) {
       <p className="text-sm font-medium text-muted-foreground">Resume Preview</p>
       <p className="mt-1 truncate text-sm font-semibold">{file?.name || "No resume selected"}</p>
 
-      <div className="mt-4 flex h-[70vh] min-h-[400px] items-center justify-center overflow-hidden rounded-xl border bg-muted/30">
+      <div className="mt-4 flex h-[55vh] min-h-[260px] items-center justify-center overflow-hidden rounded-xl border bg-muted/30 sm:min-h-[320px] lg:h-[70vh] lg:min-h-[400px]">
         {!file && (
           <div className="px-4 text-center text-sm text-muted-foreground">
             Upload one or more files and choose a resume to preview.
@@ -127,7 +127,7 @@ const clampPercent = (value) => {
 };
 
 const ScoreCard = ({ label, value, unavailable = false }) => (
-  <article className="surface-card min-w-[210px] flex-1 p-4">
+  <article className="surface-card w-full p-4">
     <p className="text-xs text-muted-foreground">{label}</p>
     <p className="mt-1 text-2xl font-semibold">{unavailable ? "N/A" : `${value}%`}</p>
     <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -258,7 +258,7 @@ export default function ResumeATSTester() {
     <>
       <Lnavbar />
       <FloatingSidebar />
-      <section className="min-h-screen bg-background px-4 py-8 md:pl-24 sm:px-6 lg:px-10">
+      <section className="min-h-screen bg-background px-4 py-6 md:pl-24 sm:px-6 sm:py-8 lg:px-10">
         <motion.div
           className="mx-auto w-full max-w-7xl"
           initial="hidden"
@@ -392,7 +392,7 @@ export default function ResumeATSTester() {
                   </div>
                 </section>
 
-                <section className="flex flex-wrap gap-3">
+                <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                   {detailedScoreCards.map((score) => (
                     <ScoreCard key={score.label} label={score.label} value={score.value} unavailable={hasHeuristicError} />
                   ))}

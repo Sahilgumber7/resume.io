@@ -26,6 +26,7 @@ export default function Lnavbar() {
   const [resumeTitle, setResumeTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const closeMobileMenu = () => setMobileMenu(false);
 
   const handleBuilderClick = () => setOpenDialog(true);
 
@@ -66,7 +67,7 @@ export default function Lnavbar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
         {/* Logo */}
         <Link href="/" className="text-xl font-semibold tracking-tight md:text-2xl">
-          resume<span className="text-muted-foreground">.io</span>
+          resume<span className="text-muted-foreground">.xyz</span>
         </Link>
 
         {/* Desktop Menu */}
@@ -129,35 +130,35 @@ export default function Lnavbar() {
       {/* Mobile Dropdown */}
       {mobileMenu && (
         <div className="flex flex-col gap-3 border-t border-border/50 bg-background/85 px-4 py-3 backdrop-blur-lg md:hidden">
-          <Button variant="ghost" size="sm" onClick={handleBuilderClick}>
+          <Button variant="ghost" size="sm" onClick={() => { handleBuilderClick(); closeMobileMenu(); }} className="w-full justify-start">
             Builder
           </Button>
-          <Link href="/parser">
-            <Button variant="ghost" size="sm">Parser</Button>
+          <Link href="/parser" onClick={closeMobileMenu}>
+            <Button variant="ghost" size="sm" className="w-full justify-start">Parser</Button>
           </Link>
-          <Link href="/ats-tester">
-            <Button variant="ghost" size="sm">ATS Score Matcher</Button>
+          <Link href="/ats-tester" onClick={closeMobileMenu}>
+            <Button variant="ghost" size="sm" className="w-full justify-start">ATS Score Matcher</Button>
           </Link>
-          <Link href="/linkedin-analyzer">
-            <Button variant="ghost" size="sm">LinkedIn Analyzer</Button>
+          <Link href="/linkedin-analyzer" onClick={closeMobileMenu}>
+            <Button variant="ghost" size="sm" className="w-full justify-start">LinkedIn Analyzer</Button>
           </Link>
-          <Link href="/cover-letter">
-            <Button variant="ghost" size="sm">Cover Letter</Button>
+          <Link href="/cover-letter" onClick={closeMobileMenu}>
+            <Button variant="ghost" size="sm" className="w-full justify-start">Cover Letter</Button>
           </Link>
           {isSignedIn && (
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">Dashboard</Button>
+            <Link href="/dashboard" onClick={closeMobileMenu}>
+              <Button variant="ghost" size="sm" className="w-full justify-start">Dashboard</Button>
             </Link>
           )}
           {isSignedIn && (
-            <Link href="/dashboard/profile">
-              <Button variant="ghost" size="sm">Profile</Button>
+            <Link href="/dashboard/profile" onClick={closeMobileMenu}>
+              <Button variant="ghost" size="sm" className="w-full justify-start">Profile</Button>
             </Link>
           )}
           <ThemeToggle />
           {!isSignedIn && (
             <SignInButton mode="modal">
-              <Button size="sm">Sign In</Button>
+              <Button size="sm" className="w-full">Sign In</Button>
             </SignInButton>
           )}
         </div>
